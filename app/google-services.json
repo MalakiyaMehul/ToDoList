@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "326089230756",
+    "firebase_url": "https://todolist-fcbcc-default-rtdb.firebaseio.com",
+    "project_id": "todolist-fcbcc",
+    "storage_bucket": "todolist-fcbcc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:326089230756:android:a718c3a49106b33fcc9931",
+        "android_client_info": {
+          "package_name": "com.example.todolist"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "326089230756-nvmq98oq44u7a6gptqhovcadh7q7iq3f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.todolist",
+            "certificate_hash": "4183ef3cc82afbcabc7695250f0d67d854c07a65"
+          }
+        },
+        {
+          "client_id": "326089230756-aju24nac1ltn4urc3r9mikcje1pom6jf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCO0xvzLreqsMeT23gVAn7815i49IkxrwA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "326089230756-aju24nac1ltn4urc3r9mikcje1pom6jf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/nav_index"
+        android:title="Index"
+        android:icon="@drawable/home_selector"
+        />
+    <item android:id="@+id/nav_calendar"
+        android:title="Calendar"
+        android:icon="@drawable/calendar"
+        />
+    <item android:id="@+id/Calendar1"
+        android:title=""
+        />
+    <item android:id="@+id/nav_focus"
+        android:icon="@drawable/clock"
+        android:title="Focuse"
+        />
+    <item android:id="@+id/nav_profile"
+        android:icon="@drawable/user"
+        android:title="Profile"
+        />
+</menu>
