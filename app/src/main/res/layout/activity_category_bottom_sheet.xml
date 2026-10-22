@@ -6,17 +6,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#363636"
-    tools:context=".activity.home.CategoryBottomSheet">
+    tools:context=".activity.activity_create_category">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/txtChoose"
         android:text="Choose Category"
+        android:textStyle="bold"
         android:textColor="@color/white"
-        android:textSize="@dimen/_16sdp"
+        android:textSize="@dimen/_14sdp"
         android:textAlignment="center"
-        android:paddingTop="@dimen/_10sdp" />
+        android:paddingTop="@dimen/_10sdp"
+        tools:ignore="MissingConstraints" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -46,13 +48,14 @@
 
     <Button
         android:layout_width="match_parent"
-        android:layout_height="@dimen/_50sdp"
+        android:layout_height="@dimen/_40sdp"
         android:id="@+id/AddCategory"
         android:background="@drawable/register_btn"
         android:text="Add Category"
         android:textAlignment="center"
         android:textSize="@dimen/_15sdp"
         android:layout_marginTop="@dimen/_10sdp"
+        android:layout_marginBottom="@dimen/_10sdp"
         app:layout_constraintTop_toBottomOf="@id/recyclerCategories"
         android:layout_marginStart="@dimen/_10sdp"
         android:layout_marginEnd="@dimen/_10sdp"

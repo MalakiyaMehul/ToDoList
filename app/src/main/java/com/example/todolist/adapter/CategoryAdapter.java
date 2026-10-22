@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -59,7 +60,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         holder.txtCategoryName.setText(category.getCategoryName());
         Context context = holder.itemView.getContext();
 
-        int iconResId = context.getResources().getIdentifier(category.getIcon(), "drawable", context.getPackageName());
+        int iconResId = context.getResources().getIdentifier(String.valueOf(category.getIcon()), "drawable", context.getPackageName());
         if (iconResId != 0) {
             holder.txtCategoryIcon.setImageResource(iconResId);
         } else {
@@ -68,11 +69,17 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
             );
         }
         try {
+            float density = holder.itemView.getResources()
+                    .getDisplayMetrics().density;
+
             GradientDrawable background = new GradientDrawable();
             background.setShape(GradientDrawable.RECTANGLE);
-            background.setCornerRadius(12 * holder.itemView.getResources().getDisplayMetrics().density);
+            background.setCornerRadius(8 * holder.itemView.getResources().getDisplayMetrics().density);
             background.setColor(Color.parseColor(category.getColor()));
             holder.txtCategoryIcon.setBackground(background);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams((int) (80 * density), (int) (80 * density));
+            holder.txtCategoryIcon.setLayoutParams(params);
+            holder.txtCategoryIcon.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         } catch (Exception e) {
             holder.txtCategoryIcon.setBackgroundColor(Color.GRAY);
         }

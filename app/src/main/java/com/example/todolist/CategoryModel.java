@@ -3,12 +3,12 @@ package com.example.todolist.model;
 public class CategoryModel {
 
     private String categoryName;
-    private String icon;
+    private int icon;
     private String color;
 
 
 
-    public CategoryModel(String categoryName, String icon, String color) {
+    public CategoryModel(String categoryName, int icon, String color) {
         this.categoryName = categoryName;
         this.icon = icon;
         this.color = color;
@@ -18,7 +18,7 @@ public class CategoryModel {
         return categoryName;
     }
 
-    public String getIcon() {
+    public int getIcon() {
         return icon;
     }
 
