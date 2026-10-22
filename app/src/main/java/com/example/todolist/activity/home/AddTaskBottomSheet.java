@@ -17,6 +17,8 @@ import androidx.fragment.app.DialogFragment;
 import com.example.todolist.databinding.ActivityAddTaskBottomSheetBinding;
 import com.example.todolist.model.CategoryModel;
 import com.example.todolist.model.TaskModel;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
@@ -25,7 +27,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.Calendar;
 import java.util.Locale;
 
-public class AddTaskBottomSheet extends DialogFragment {
+public class AddTaskBottomSheet extends BottomSheetDialogFragment {
     private ActivityAddTaskBottomSheetBinding binding;
     private CategoryModel categoryModel;
     private String selectedDate = "";
@@ -44,7 +46,7 @@ public class AddTaskBottomSheet extends DialogFragment {
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         binding = ActivityAddTaskBottomSheetBinding.inflate(LayoutInflater.from(requireContext()));
-        Dialog dialog = new Dialog(requireContext());
+        BottomSheetDialog dialog = new BottomSheetDialog(requireContext());
         dialog.setContentView(binding.getRoot());
         binding.Timer.setOnClickListener(v -> openCalendar());
         binding.Category.setOnClickListener(v -> {

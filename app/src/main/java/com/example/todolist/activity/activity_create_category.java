@@ -30,8 +30,8 @@ public class activity_create_category extends BaseActivity {
     private View selectedColorView;
     private final String[] colors = {"#C4D82E", "#68C943", "#36C6A3", "#36A9E1", "#3486D8", "#D68B42", "#C43CB8", "#E84C8A"};
 
-    private final int[] icons = {
-            R.drawable.university,
+    private final String[] icons = {
+            "R.drawable.university",
     };
 
     @SuppressLint("MissingInflatedId")
@@ -103,7 +103,7 @@ public class activity_create_category extends BaseActivity {
             row.setOrientation(LinearLayout.HORIZONTAL);
             row.setGravity(Gravity.CENTER);
             for (int i = start; i < Math.min(start + 4, icons.length); i++) {
-                final int icon = icons[i];
+                final String icon = icons[i];
                 TextView iconView = new TextView(this);
                 iconView.setText(icon);
                 iconView.setTextSize(28);

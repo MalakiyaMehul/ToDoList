@@ -2,21 +2,21 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/nav_index"
         android:title="Index"
-        android:icon="@drawable/home_selector"
+        android:icon="@drawable/nav_index_icon"
         />
     <item android:id="@+id/nav_calendar"
         android:title="Calendar"
-        android:icon="@drawable/calendar"
+        android:icon="@drawable/nav_calender_icon"
         />
     <item android:id="@+id/Calendar1"
         android:title=""
         />
     <item android:id="@+id/nav_focus"
-        android:icon="@drawable/clock"
+        android:icon="@drawable/nav_clock_icon"
         android:title="Focuse"
         />
     <item android:id="@+id/nav_profile"
-        android:icon="@drawable/user"
+        android:icon="@drawable/nav_profile_icon"
         android:title="Profile"
         />
 </menu>

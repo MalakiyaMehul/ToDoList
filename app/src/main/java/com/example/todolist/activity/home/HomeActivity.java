@@ -19,7 +19,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.example.todolist.databinding.ActivityHomeBinding;
 import com.google.android.material.tabs.TabLayout;
 
-public class HomeActivity extends BaseActivity {
+public class HomeActivity extends AppCompatActivity {
 
     private ActivityHomeBinding binding;
 
@@ -29,6 +29,7 @@ public class HomeActivity extends BaseActivity {
         EdgeToEdge.enable(this);
         binding = ActivityHomeBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        binding.bottomNavigationView.setItemActiveIndicatorEnabled(false);
         binding.fabAdd.setOnClickListener(v -> {
             AddTaskBottomSheet sheet = new AddTaskBottomSheet();
             sheet.show(getSupportFragmentManager(), "AddTaskBottomSheet");
@@ -66,5 +67,6 @@ public class HomeActivity extends BaseActivity {
                 }
             }
         });
+
     }
 }

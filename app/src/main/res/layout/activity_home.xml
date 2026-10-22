@@ -34,7 +34,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="#363636"
-            android:minHeight="64dp"
+            android:minHeight="@dimen/_64sdp"
             app:itemIconSize="@dimen/_20sdp"
             app:itemIconTint="@color/white"
             app:itemTextColor="@color/white"
