@@ -99,7 +99,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
     public int getItemCount() {
         return categoryList.size() + 1;
     }
-    public class CategoryViewHolder extends RecyclerView.ViewHolder {
+    public static class CategoryViewHolder extends RecyclerView.ViewHolder {
         TextView txtCategoryName;
         ImageView txtCategoryIcon;
         public CategoryViewHolder(@NonNull View itemView) {

@@ -11,6 +11,9 @@ public class TaskModel {
     private String category;
     private boolean completed;
 
+    public TaskModel() {
+// Required by Firebase
+    }
     public TaskModel(String taskId, String taskName, String description, String date, String time, String category, int priority, boolean completed) {
     }
 
@@ -55,5 +58,8 @@ public class TaskModel {
 
     public boolean isCompleted() {
         return completed;
+    }
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
     }
 }

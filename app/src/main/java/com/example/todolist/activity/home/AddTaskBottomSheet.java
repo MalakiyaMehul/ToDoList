@@ -76,13 +76,11 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
             saveTaskToFirebase(taskName, description, date, time, category, priority);
         });
         getParentFragmentManager().setFragmentResultListener(
-                "category_selected",
-                this,
-                (requestKey, bundle) -> {
+                "category_selected",this, (requestKey, bundle) -> {
                     selectedCategory = bundle.getString("selectedCategory", "");
                     Toast.makeText(requireContext(), selectedCategory, Toast.LENGTH_SHORT).show();
                 }
-        );
+);
         return dialog;
     }
 

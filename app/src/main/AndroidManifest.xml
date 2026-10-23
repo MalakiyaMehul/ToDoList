@@ -50,16 +50,7 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize"
             tools:ignore="Instantiatable" />
-        <activity
-            android:name=".activity.home.TaskPriorityBottomSheet"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize"
-            tools:ignore="Instantiatable" />
-        <activity
-            android:name=".activity.home.CategoryBottomSheet"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize"
-            tools:ignore="Instantiatable" />
+
         <activity
             android:name=".activity.activity_create_category"
             android:exported="false"

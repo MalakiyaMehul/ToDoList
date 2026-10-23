@@ -24,6 +24,7 @@ public class ItemAdd_Category extends DialogFragment {
     private DialogAddCategoryBinding binding;
     private CategoryAdapter adapter;
     private String selectedCategory = "";
+    private CategoryModel selectedCategoryModel;
     public static final ArrayList<CategoryModel> categoryList = new ArrayList<>();
 
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState)
@@ -47,21 +48,34 @@ public class ItemAdd_Category extends DialogFragment {
         categoryList.add(new CategoryModel("Home",R.drawable.home,"#FFCC80"));
 
         adapter = new CategoryAdapter(categoryList, category -> {
+            selectedCategoryModel = category;
             selectedCategory = category.getCategoryName();
         });
         binding.recyclerCategories.setAdapter(adapter);
 
         binding.AddCategory.setOnClickListener(v -> {
-            if (selectedCategory.isEmpty()) {
-                Toast.makeText(requireContext(), "Please select a category", Toast.LENGTH_SHORT).show();
+            if (selectedCategoryModel == null) {
+                Toast.makeText(requireContext(),
+                        "Please select a category",
+                        Toast.LENGTH_SHORT).show();
                 return;
             }
+
             Bundle result = new Bundle();
-            result.putString("selectedCategory", selectedCategory);
+
+            result.putString("selectedCategory",
+                    selectedCategoryModel.getCategoryName());
+
+            result.putString("selectedCategoryColor",
+                    selectedCategoryModel.getColor());
+
+            result.putInt("selectedCategoryIcon",
+                    selectedCategoryModel.getIcon());
+
             getParentFragmentManager().setFragmentResult(
-                    "category_selected",
-                    result
+                    "category_selected", result
             );
+
             dismiss();
         });
         Window window = dialog.getWindow();

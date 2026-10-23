@@ -41,5 +41,37 @@
             android:background="@drawable/img_profile"
             android:scaleType="center" />
     </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_marginTop="@dimen/_90sdp"
+        android:layout_height="@dimen/_50sdp"
+        android:layout_marginLeft="@dimen/_10sdp"
+        android:layout_marginRight="@dimen/_10sdp"
+        android:gravity="center"
+        android:background="@drawable/search_button"
+        android:orientation="horizontal">
+        
+        <ImageView
+            android:layout_width="@dimen/_26sdp"
+            android:layout_height="@dimen/_26sdp"
+            android:layout_marginLeft="@dimen/_10sdp"
+            android:src="@drawable/search"/>
 
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:textSize="@dimen/_14sdp"
+            android:layout_marginStart="@dimen/_6sdp"
+            android:hint="Search for your task..."
+            android:textColorHint="#AFAFAF"/>
+    </LinearLayout>
+
+    <com.example.todolist.TaskInputField
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/Task"
+        android:layout_marginTop="@dimen/_150sdp"
+        android:layout_marginLeft="@dimen/_10sdp"
+        android:layout_marginRight="@dimen/_10sdp"/>
 </FrameLayout>
