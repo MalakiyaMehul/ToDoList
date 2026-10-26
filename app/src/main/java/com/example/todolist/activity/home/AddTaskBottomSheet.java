@@ -40,7 +40,8 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
     private int selectedHour;
     private int selectedMinute;
     private int priority = 1;
-    private TaskModel taskModel;
+    private String selectedCategoryColor = "";
+    private String selectedCategoryIcon = "";
 
     @NonNull
     @Override
@@ -76,11 +77,20 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
             saveTaskToFirebase(taskName, description, date, time, category, priority);
         });
         getParentFragmentManager().setFragmentResultListener(
-                "category_selected",this, (requestKey, bundle) -> {
+                "category_selected",
+                this,
+                (requestKey, bundle) -> {
                     selectedCategory = bundle.getString("selectedCategory", "");
-                    Toast.makeText(requireContext(), selectedCategory, Toast.LENGTH_SHORT).show();
+                    selectedCategoryColor = bundle.getString("selectedCategoryColor", "");
+                    int iconRes = bundle.getInt("selectedCategoryIcon", 0);
+                    if (iconRes != 0) {
+                        selectedCategoryIcon = String.valueOf(iconRes);
+                    } else {
+                        selectedCategoryIcon = bundle.getString("selectedCategoryIcon", "");
+                    }
+                    Toast.makeText(requireContext(), "Category: " + selectedCategory, Toast.LENGTH_SHORT).show();
                 }
-);
+        );
         return dialog;
     }
 
@@ -96,7 +106,7 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
         if (taskId == null) {
             return;
         }
-        TaskModel task = new TaskModel(taskId, taskName, description, date, time, category, priority, false);
+        TaskModel task = new TaskModel(taskId, taskName, description, date, time, category,selectedCategoryColor, selectedCategoryIcon, priority, false);
         tasksRef.child(taskId).setValue(task).addOnSuccessListener(unused -> {
             Toast.makeText(requireContext(), "Task saved successfully", Toast.LENGTH_SHORT).show();
             dismiss();

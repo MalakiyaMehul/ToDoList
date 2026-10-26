@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ToDoList">
         <activity
+            android:name=".activity.EditTaskActivity"
+            android:exported="false" />
+        <activity
             android:name=".activity.home.HomeActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">
@@ -50,7 +53,6 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize"
             tools:ignore="Instantiatable" />
-
         <activity
             android:name=".activity.activity_create_category"
             android:exported="false"

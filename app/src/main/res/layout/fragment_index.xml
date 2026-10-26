@@ -67,11 +67,33 @@
             android:textColorHint="#AFAFAF"/>
     </LinearLayout>
 
-    <com.example.todolist.TaskInputField
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollTasks"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/Task"
         android:layout_marginTop="@dimen/_150sdp"
         android:layout_marginLeft="@dimen/_10sdp"
-        android:layout_marginRight="@dimen/_10sdp"/>
+        android:layout_marginRight="@dimen/_10sdp"
+        android:clipToPadding="false"
+        android:paddingBottom="@dimen/_60sdp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.example.todolist.TaskInputField
+                android:id="@+id/Task"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <com.example.todolist.TaskInputField
+                android:id="@+id/TaskCompleted"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_16sdp" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 </FrameLayout>

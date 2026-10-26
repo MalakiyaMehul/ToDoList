@@ -1,3 +1,4 @@
+
 package com.example.todolist.model;
 
 public class TaskModel {
@@ -10,34 +11,35 @@ public class TaskModel {
     private String priority;
     private String category;
     private boolean completed;
+    private String categoryColor;
+    private String categoryIcon;
 
+    // Required by Firebase
     public TaskModel() {
-// Required by Firebase
-    }
-    public TaskModel(String taskId, String taskName, String description, String date, String time, String category, int priority, boolean completed) {
     }
 
-    public TaskModel(String taskId, String taskName, String description, String date, String time, String priority, String category, boolean completed) {
+    public TaskModel(String taskId, String taskName, String description, String date, String time, String category, String categoryColor, String categoryIcon, String priority, boolean completed) {
         this.taskId = taskId;
         this.taskName = taskName;
         this.description = description;
         this.date = date;
         this.time = time;
-        this.priority = category;
-        this.category = priority;
+        this.category = category;
+        this.categoryColor = categoryColor;
+        this.categoryIcon = categoryIcon;
+        this.priority = priority;
         this.completed = completed;
     }
 
+    public String getDescription() {
+        return description;
+    }
     public String getTaskId() {
         return taskId;
     }
 
     public String getTaskName() {
         return taskName;
-    }
-
-    public String getDescription() {
-        return description;
     }
 
     public String getDate() {
@@ -54,6 +56,14 @@ public class TaskModel {
 
     public String getCategory() {
         return category;
+    }
+
+    public String getCategoryColor() {
+        return categoryColor;
+    }
+
+    public String getCategoryIcon() {
+        return categoryIcon;
     }
 
     public boolean isCompleted() {

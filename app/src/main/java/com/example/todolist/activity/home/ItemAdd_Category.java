@@ -36,6 +36,7 @@ public class ItemAdd_Category extends DialogFragment {
         binding = DialogAddCategoryBinding.bind(view);
 
         binding.recyclerCategories.setLayoutManager(new GridLayoutManager(requireContext(), 3));
+        categoryList.clear();
         categoryList.add(new CategoryModel("Grocery",R.drawable.bread,"#CCFF80"));
         categoryList.add(new CategoryModel("Work",R.drawable.briefcase,"#FF9680"));
         categoryList.add(new CategoryModel("Sport",R.drawable.sport,"#80FFFF"));

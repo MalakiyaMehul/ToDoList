@@ -24,32 +24,47 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Locale;
 
 
 public class IndexFragment extends Fragment {
 
     private FragmentIndexBinding binding;
     private DatabaseReference databaseReference;
-    private ArrayList<TaskModel> taskModels;
-    private TaskAdapter adapter;
     private TaskInputField taskInputField;
+    private TaskInputField taskCompletedInputField;
+    private final ArrayList<TaskModel> todayTasks = new ArrayList<>();
+    private final ArrayList<TaskModel> completedTasks = new ArrayList<>();
+    private TaskAdapter todayAdapter;
+    private TaskAdapter completedAdapter;
     private ValueEventListener tasksListener;
 
     public IndexFragment() {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentIndexBinding.inflate(inflater, container, false);
         taskInputField = binding.Task;
-        taskModels = new ArrayList<>();
-        adapter = new TaskAdapter(taskModels);
-        taskInputField.setRecyclerViewAdapter(adapter);
+        taskCompletedInputField = binding.TaskCompleted;
+
+        todayAdapter = new TaskAdapter(todayTasks);
+        completedAdapter = new TaskAdapter(completedTasks);
+
         taskInputField.setLabel("Today");
+        taskInputField.setRecyclerViewAdapter(todayAdapter);
+
+        taskCompletedInputField.setLabel("Completed");
+        taskCompletedInputField.setRecyclerViewAdapter(completedAdapter);
+
         loadTasksFromFirebase();
         return binding.getRoot();
     }
+
+    @Override
     public void onResume() {
         super.onResume();
         loadTasksFromFirebase();
@@ -60,37 +75,44 @@ public class IndexFragment extends Fragment {
         if (user == null) {
             if (isAdded()) {
                 Toast.makeText(requireContext(), "Please login first", Toast.LENGTH_SHORT).show();
-                return;
             }
-
+            return;
         }
+
         String uId = user.getUid();
         databaseReference = FirebaseDatabase.getInstance()
                 .getReference("Users")
                 .child(uId)
                 .child("Tasks");
+
+        if (tasksListener != null) {
+            databaseReference.removeEventListener(tasksListener);
+        }
+
         tasksListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (!isAdded() || binding == null) {
                     return;
                 }
-                taskModels.clear();
+                todayTasks.clear();
+                completedTasks.clear();
+                String todayDate = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Calendar.getInstance().getTime());
+
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     TaskModel taskModel = dataSnapshot.getValue(TaskModel.class);
                     if (taskModel != null) {
-                        taskModels.add(taskModel);
+                        if (taskModel.isCompleted()) {
+                            completedTasks.add(taskModel);
+                        } else {
+                            if (todayDate.equals(taskModel.getDate())) {
+                                todayTasks.add(taskModel);
+                            }
+                        }
                     }
                 }
-                adapter.notifyDataSetChanged();
-
-                if (taskModels.isEmpty()) {
-                    Toast.makeText(
-                            requireContext(),
-                            "No tasks found in Firebase",
-                            Toast.LENGTH_SHORT
-                    ).show();
-                }
+                todayAdapter.notifyDataSetChanged();
+                completedAdapter.notifyDataSetChanged();
             }
 
             @Override
@@ -101,8 +123,8 @@ public class IndexFragment extends Fragment {
             }
         };
         databaseReference.addValueEventListener(tasksListener);
-
     }
+
     public void onDestroyView() {
         super.onDestroyView();
 

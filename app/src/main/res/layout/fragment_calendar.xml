@@ -3,14 +3,142 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:paddingTop="@dimen/_40sdp"
     android:background="#121212"
     tools:context=".Fragment.CalendarFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/txtCalendarTitle"
+            android:layout_width="match_parent"
+            android:layout_height="56sp"
+            android:gravity="center"
+            android:text="Calendar"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/_18sdp"
+            android:background="#121212" />
+
+        <LinearLayout
+            android:id="@+id/monthHeader"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_56sdp"
+            android:background="#353535"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btnPreviousMonth"
+                android:layout_width="@dimen/_48sdp"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:src="@drawable/arrow_left"
+                android:scaleType="centerInside"
+                android:contentDescription="Previous month"
+                app:tint="#FFFFFF" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/txtMonth"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="FEBRUARY"
+                    android:textColor="#FFFFFF"
+                    android:textSize="@dimen/_14sdp" />
+
+                <TextView
+                    android:id="@+id/txtYear"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="2026"
+                    android:textColor="#AAAAAA"
+                    android:textSize="@dimen/_11sdp" />
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/btnNextMonth"
+                android:layout_width="@dimen/_48sdp"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:src="@drawable/arrow_right"
+                android:scaleType="centerInside"
+                android:contentDescription="Next month"
+                app:tint="#FFFFFF" />
+
+        </LinearLayout>
+        <HorizontalScrollView
+            android:id="@+id/dayScroll"
+            android:layout_width="match_parent"
+            android:layout_height="76dp"
+            android:background="#353535"
+            android:fillViewport="false"
+            android:scrollbars="none"
+            app:layout_constraintTop_toBottomOf="@id/monthHeader">
+
+            <LinearLayout
+                android:id="@+id/dayContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="4dp"/>
+        </HorizontalScrollView>
+        <LinearLayout
+            android:id="@+id/filterContainer"
+            android:layout_width="match_parent"
+            android:layout_height="74dp"
+            android:layout_marginHorizontal="24dp"
+            android:layout_marginTop="24dp"
+            android:background="#454545"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="9dp"
+            app:layout_constraintTop_toBottomOf="@id/dayScroll">
+
+            <TextView
+                android:id="@+id/btnToday"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="#8585E8"
+                android:gravity="center"
+                android:text="Today"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"/>
+
+            <TextView
+                android:id="@+id/btnCompleted"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginStart="28dp"
+                android:background="@drawable/bg_completed_button"
+                android:gravity="center"
+                android:text="Completed"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"/>
+        </LinearLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerCalendarTasks"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingHorizontal="24dp"
+            android:paddingTop="15dp"
+            android:paddingBottom="12dp" />
+
+    </LinearLayout>
+
 
 </FrameLayout>

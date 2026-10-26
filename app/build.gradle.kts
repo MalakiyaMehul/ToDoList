@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.example.todolist"
-    compileSdk = 35
+    compileSdk = 36
 
     buildFeatures {
         viewBinding = true
@@ -48,6 +48,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.constraintlayout)
     implementation(libs.activity.ktx)
+    implementation(libs.activity)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)
