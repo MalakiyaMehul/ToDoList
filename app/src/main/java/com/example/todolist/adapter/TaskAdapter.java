@@ -18,9 +18,19 @@
 
         public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
             private final ArrayList<TaskModel> taskModels;
+            public interface OnTaskClickListener {
+                void onTaskClick(TaskModel taskModel);
+            }
+
+            private final OnTaskClickListener listener;
 
             public TaskAdapter(ArrayList<TaskModel> taskModels) {
+                this(taskModels, null);
+            }
+
+            public TaskAdapter(ArrayList<TaskModel> taskModels, OnTaskClickListener listener) {
                 this.taskModels = taskModels;
+                this.listener = listener;
             }
 
             @NonNull
@@ -79,6 +89,11 @@
                                 .child("Tasks")
                                 .child(taskModel.getTaskId());
                         taskRef.child("completed").setValue(newStatus);
+                    }
+                });
+                holder.itemView.setOnClickListener(v -> {
+                    if (listener != null) {
+                        listener.onTaskClick(taskModel);
                     }
                 });
             }

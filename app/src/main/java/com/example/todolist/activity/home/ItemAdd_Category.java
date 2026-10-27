@@ -14,6 +14,7 @@ import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.example.todolist.R;
+import com.example.todolist.activity.EditTaskBottomSheet;
 import com.example.todolist.adapter.CategoryAdapter;
 import com.example.todolist.databinding.DialogAddCategoryBinding;
 import com.example.todolist.model.CategoryModel;
@@ -26,6 +27,15 @@ public class ItemAdd_Category extends DialogFragment {
     private String selectedCategory = "";
     private CategoryModel selectedCategoryModel;
     public static final ArrayList<CategoryModel> categoryList = new ArrayList<>();
+
+    public interface OnTaskEditListener {
+        void categoryEdit(String CategoryName,String CategotyColor,String CategoryIcon);
+    }
+    private ItemAdd_Category.OnTaskEditListener listener;
+    public void setOnTaskEditListener(ItemAdd_Category.OnTaskEditListener listener) {
+        this.listener = listener;
+    }
+    @Override
 
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState)
     {
@@ -61,22 +71,11 @@ public class ItemAdd_Category extends DialogFragment {
                         Toast.LENGTH_SHORT).show();
                 return;
             }
-
             Bundle result = new Bundle();
-
-            result.putString("selectedCategory",
-                    selectedCategoryModel.getCategoryName());
-
-            result.putString("selectedCategoryColor",
-                    selectedCategoryModel.getColor());
-
-            result.putInt("selectedCategoryIcon",
-                    selectedCategoryModel.getIcon());
-
-            getParentFragmentManager().setFragmentResult(
-                    "category_selected", result
-            );
-
+            result.putString("selectedCategory", selectedCategoryModel.getCategoryName());
+            result.putString("selectedCategoryColor", selectedCategoryModel.getColor());
+            result.putInt("selectedCategoryIcon", selectedCategoryModel.getIcon());
+            getParentFragmentManager().setFragmentResult("category_selected", result);
             dismiss();
         });
         Window window = dialog.getWindow();
@@ -104,4 +103,5 @@ public class ItemAdd_Category extends DialogFragment {
             adapter.notifyDataSetChanged();
         }
     }
+
 }

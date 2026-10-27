@@ -60,8 +60,7 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
             prioritySheet.setOnPrioritySelectedListener(selectedPriority -> {
                 priority = selectedPriority;
             });
-            prioritySheet.show(getChildFragmentManager(), "TaskPriorityBottomSheet"
-            );
+            prioritySheet.show(getChildFragmentManager(), "TaskPriorityBottomSheet");
         });
         binding.btnSave.setOnClickListener(v -> {
             String taskName = binding.edtTaskName.getText().toString().trim();

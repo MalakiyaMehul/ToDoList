@@ -1,5 +1,6 @@
 package com.example.todolist.Fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -13,6 +14,7 @@ import android.widget.Toast;
 
 import com.example.todolist.R;
 import com.example.todolist.TaskInputField;
+import com.example.todolist.activity.EditTaskActivity;
 import com.example.todolist.adapter.TaskAdapter;
 import com.example.todolist.databinding.FragmentIndexBinding;
 import com.example.todolist.model.TaskModel;
@@ -51,8 +53,13 @@ public class IndexFragment extends Fragment {
         taskInputField = binding.Task;
         taskCompletedInputField = binding.TaskCompleted;
 
-        todayAdapter = new TaskAdapter(todayTasks);
-        completedAdapter = new TaskAdapter(completedTasks);
+        todayAdapter = new TaskAdapter(todayTasks, taskModel -> {
+            openEditTask(taskModel);
+        });
+
+        completedAdapter = new TaskAdapter(completedTasks, taskModel -> {
+            openEditTask(taskModel);
+        });
 
         taskInputField.setLabel("Today");
         taskInputField.setRecyclerViewAdapter(todayAdapter);
@@ -62,6 +69,22 @@ public class IndexFragment extends Fragment {
 
         loadTasksFromFirebase();
         return binding.getRoot();
+    }
+    private void openEditTask(TaskModel taskModel) {
+        Intent intent = new Intent(requireContext(), EditTaskActivity.class);
+
+        intent.putExtra("taskId", taskModel.getTaskId());
+        intent.putExtra("taskName", taskModel.getTaskName());
+        intent.putExtra("description", taskModel.getDescription());
+        intent.putExtra("date", taskModel.getDate());
+        intent.putExtra("time", taskModel.getTime());
+        intent.putExtra("category", taskModel.getCategory());
+        intent.putExtra("priority", taskModel.getPriority());
+        intent.putExtra("categoryColor", taskModel.getCategoryColor());
+        intent.putExtra("categoryIcon", taskModel.getCategoryIcon());
+        intent.putExtra("completed", taskModel.isCompleted());
+
+        startActivity(intent);
     }
 
     @Override
