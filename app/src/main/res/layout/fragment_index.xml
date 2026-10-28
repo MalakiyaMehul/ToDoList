@@ -35,11 +35,15 @@
             android:textSize="@dimen/_18sdp" />
 
         <ImageButton
+            android:id="@+id/ivIndexAvatar"
             android:layout_width="@dimen/_35sdp"
             android:layout_height="@dimen/_35sdp"
             android:layout_marginRight="@dimen/_5sdp"
             android:background="@drawable/img_profile"
-            android:scaleType="center" />
+            android:src="@drawable/img_profile"
+            android:scaleType="centerCrop"
+            android:contentDescription="Profile image" />
+
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"

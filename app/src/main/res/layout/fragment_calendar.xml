@@ -96,13 +96,13 @@
         <LinearLayout
             android:id="@+id/filterContainer"
             android:layout_width="match_parent"
-            android:layout_height="74dp"
-            android:layout_marginHorizontal="24dp"
-            android:layout_marginTop="24dp"
+            android:layout_height="74sp"
+            android:layout_marginHorizontal="24sp"
+            android:layout_marginTop="@dimen/_24sdp"
             android:background="#454545"
             android:gravity="center"
             android:orientation="horizontal"
-            android:padding="9dp"
+            android:padding="@dimen/_9sdp"
             app:layout_constraintTop_toBottomOf="@id/dayScroll">
 
             <TextView
@@ -114,19 +114,19 @@
                 android:gravity="center"
                 android:text="Today"
                 android:textColor="#FFFFFF"
-                android:textSize="14sp"/>
+                android:textSize="@dimen/_14sdp"/>
 
             <TextView
                 android:id="@+id/btnCompleted"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:layout_marginStart="28dp"
+                android:layout_marginStart="28sp"
                 android:background="@drawable/bg_completed_button"
                 android:gravity="center"
                 android:text="Completed"
                 android:textColor="#FFFFFF"
-                android:textSize="14sp"/>
+                android:textSize="@dimen/_14sdp"/>
         </LinearLayout>
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerCalendarTasks"
@@ -134,9 +134,9 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:clipToPadding="false"
-            android:paddingHorizontal="24dp"
-            android:paddingTop="15dp"
-            android:paddingBottom="12dp" />
+            android:paddingHorizontal="@dimen/_24sdp"
+            android:paddingTop="@dimen/_15sdp"
+            android:paddingBottom="@dimen/_12sdp" />
 
     </LinearLayout>
 

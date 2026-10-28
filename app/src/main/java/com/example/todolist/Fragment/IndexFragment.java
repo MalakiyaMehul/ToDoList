@@ -70,6 +70,35 @@ public class IndexFragment extends Fragment {
         loadTasksFromFirebase();
         return binding.getRoot();
     }
+
+    private void loadSavedAvatar() {
+        if (binding == null || !isAdded()) {
+            return;
+        }
+
+        android.content.SharedPreferences prefs =
+                requireContext().getSharedPreferences(
+                        "UserProfile",
+                        android.content.Context.MODE_PRIVATE
+                );
+
+        String savedAvatarUri = prefs.getString("avatar_uri", null);
+
+        if (savedAvatarUri != null && !savedAvatarUri.isEmpty()) {
+            try {
+                binding.ivIndexAvatar.setImageURI(
+                        android.net.Uri.parse(savedAvatarUri)
+                );
+            } catch (Exception e) {
+                android.util.Log.e(
+                        "IndexFragment",
+                        "Failed to load profile image",
+                        e
+                );
+            }
+        }
+    }
+
     private void openEditTask(TaskModel taskModel) {
         Intent intent = new Intent(requireContext(), EditTaskActivity.class);
 
@@ -90,6 +119,7 @@ public class IndexFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        loadSavedAvatar();
         loadTasksFromFirebase();
     }
 
