@@ -48,7 +48,7 @@
         android:id="@+id/fabAdd"
         android:layout_width="@dimen/_60sdp"
         android:layout_height="@dimen/_60sdp"
-        android:layout_marginBottom="75dp"
+        android:layout_marginBottom="@dimen/_70sdp"
         android:contentDescription="Add task"
         android:src="@drawable/add"
         app:backgroundTint="#8687e7"

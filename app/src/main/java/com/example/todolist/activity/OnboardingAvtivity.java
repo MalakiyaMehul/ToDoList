@@ -29,6 +29,8 @@ public class OnboardingAvtivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
         SharedPreferences preferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
 
         boolean hasRegistered = preferences.getBoolean("hasRegistered", false);
@@ -39,7 +41,6 @@ public class OnboardingAvtivity extends BaseActivity {
             return;
         }
 
-        super.onCreate(savedInstanceState);
         binding = ActivityOnboardingBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         list = new ArrayList<>();

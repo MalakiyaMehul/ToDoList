@@ -68,6 +68,7 @@ public class IndexFragment extends Fragment {
         taskCompletedInputField.setRecyclerViewAdapter(completedAdapter);
 
         loadTasksFromFirebase();
+        loadSavedAvatar();
         return binding.getRoot();
     }
 
@@ -75,30 +76,20 @@ public class IndexFragment extends Fragment {
         if (binding == null || !isAdded()) {
             return;
         }
-
-        android.content.SharedPreferences prefs =
-                requireContext().getSharedPreferences(
-                        "UserProfile",
-                        android.content.Context.MODE_PRIVATE
-                );
-
-        String savedAvatarUri = prefs.getString("avatar_uri", null);
+        String savedAvatarUri = requireContext()
+                .getSharedPreferences("UserProfile", android.content.Context.MODE_PRIVATE)
+                .getString("avatar_uri", null);
 
         if (savedAvatarUri != null && !savedAvatarUri.isEmpty()) {
             try {
-                binding.ivIndexAvatar.setImageURI(
-                        android.net.Uri.parse(savedAvatarUri)
-                );
-            } catch (Exception e) {
-                android.util.Log.e(
-                        "IndexFragment",
-                        "Failed to load profile image",
-                        e
-                );
-            }
+                java.io.File file = new java.io.File(savedAvatarUri);
+                if (file.exists()) {
+                    binding.ivIndexAvatar.setImageURI(null);
+                    binding.ivIndexAvatar.setImageURI(android.net.Uri.fromFile(file));
+                }
+            } catch (Exception ignored) {}
         }
     }
-
     private void openEditTask(TaskModel taskModel) {
         Intent intent = new Intent(requireContext(), EditTaskActivity.class);
 
@@ -119,7 +110,6 @@ public class IndexFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        loadSavedAvatar();
         loadTasksFromFirebase();
     }
 

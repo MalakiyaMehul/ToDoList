@@ -53,7 +53,7 @@ public class LoginActivity extends BaseActivity {
         InputField passwordField = binding.edtPassword;
 
         usernameField.setLabel("Username");
-        usernameField.setHint("Enter your Username");
+        usernameField.setHint("Enter your Username or Email");
         passwordField.setLabel("Password");
         passwordField.setHint(" ● ● ● ● ● ● ● ");
 
@@ -101,13 +101,18 @@ public class LoginActivity extends BaseActivity {
                 Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
                 return;
             }
-            auth.signInWithEmailAndPassword(username, password).addOnCompleteListener(task -> {
+            String email = username.contains("@") ? username : (username.replaceAll("\\s+", "").toLowerCase() + "@todolist.com");
+            binding.btnLogin.setEnabled(false);
+            auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
+                binding.btnLogin.setEnabled(true);
                 if (task.isSuccessful()) {
                     Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(LoginActivity.this,HomeActivity.class);
+                    Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
                     startActivity(intent);
+                    finish();
                 } else {
-                    Toast.makeText(this, "Invalid email or password", Toast.LENGTH_LONG).show();
+                    String errorMsg = task.getException() != null ? task.getException().getMessage() : "Invalid email or password";
+                    Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show();
                 }
             });
         });
