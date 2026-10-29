@@ -52,19 +52,27 @@ public class LoginActivity extends BaseActivity {
         InputField usernameField = binding.txtUserLogin;
         InputField passwordField = binding.edtPassword;
 
-        usernameField.setLabel("Username");
-        usernameField.setHint("Enter your Username or Email");
+        usernameField.setLabel("Email or Username");
+        usernameField.setHint("elena@designcraft.io");
         passwordField.setLabel("Password");
-        passwordField.setHint(" ● ● ● ● ● ● ● ");
+        passwordField.setHint("● ● ● ● ● ● ● ● ● ●");
 
         int passwordType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD;
         passwordField.setInputType(passwordType);
 
-        binding.btnImg.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, StartActivity.class);
-            startActivity(intent);
-            finish();
+        final boolean[] isRememberMeChecked = {true};
+        binding.checkRememberMe.setOnClickListener(v -> {
+            isRememberMeChecked[0] = !isRememberMeChecked[0];
+            binding.checkRememberMe.setBackgroundResource(
+                    isRememberMeChecked[0] ? R.drawable.bg_checkbox_checked : R.drawable.bg_card_input
+            );
         });
+
+        binding.txtForgotPassword.setOnClickListener(v -> {
+            Toast.makeText(this, "Password recovery feature", Toast.LENGTH_SHORT).show();
+        });
+
+
 
         googleSignInLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),

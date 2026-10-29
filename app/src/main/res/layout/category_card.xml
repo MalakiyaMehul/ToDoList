@@ -1,25 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
     android:id="@+id/bgcolor"
-    android:background="@drawable/categori_card"
-    android:padding="@dimen/_8sdp"
-    android:orientation="horizontal">
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_category_selected"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="8dp"
+    android:paddingVertical="3dp">
 
     <ImageView
-        android:layout_width="@dimen/_12sdp"
-        android:layout_height="@dimen/_12sdp"
         android:id="@+id/img_category"
-        android:src="@drawable/university"
-        android:layout_marginEnd="@dimen/_8sdp"
-        />
+        android:layout_width="13dp"
+        android:layout_height="13dp"
+        android:layout_marginEnd="5dp"
+        android:src="@drawable/ic_briefcase_custom" />
 
     <TextView
+        android:id="@+id/txt_category"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/txt_category"
-        android:text="University"
+        android:fontFamily="sans-serif-medium"
+        android:text="Work"
         android:textColor="@color/white"
-        android:textSize="@dimen/_10sdp"/>
+        android:textSize="11sp" />
 </LinearLayout>

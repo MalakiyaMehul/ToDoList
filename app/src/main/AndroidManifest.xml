@@ -19,6 +19,11 @@
         android:theme="@style/Theme.ToDoList">
 
         <activity
+            android:name=".activity.CreateTaskActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
             android:name=".activity.EditTaskActivity"
             android:exported="false" />
 

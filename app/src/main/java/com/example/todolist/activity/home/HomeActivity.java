@@ -16,6 +16,8 @@ import com.example.todolist.ViewPagerAdapter;
 import com.example.todolist.activity.BaseActivity;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import android.content.Intent;
+import com.example.todolist.activity.CreateTaskActivity;
 import com.example.todolist.databinding.ActivityHomeBinding;
 import com.google.android.material.tabs.TabLayout;
 
@@ -29,10 +31,25 @@ public class HomeActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         binding = ActivityHomeBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.BottomAppBar, (v, insets) -> {
+            androidx.core.graphics.Insets systemBars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars());
+            v.setPadding(0, 0, 0, systemBars.bottom);
+            return insets;
+        });
+
         binding.bottomNavigationView.setItemActiveIndicatorEnabled(false);
         binding.fabAdd.setOnClickListener(v -> {
+            try {
+                startActivity(new Intent(HomeActivity.this, CreateTaskActivity.class));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        binding.fabAdd.setOnLongClickListener(v -> {
             AddTaskBottomSheet sheet = new AddTaskBottomSheet();
             sheet.show(getSupportFragmentManager(), "AddTaskBottomSheet");
+            return true;
         });
         binding.viewPager.setAdapter(new ViewPagerAdapter(this));
         binding.bottomNavigationView.setOnItemSelectedListener(item -> {

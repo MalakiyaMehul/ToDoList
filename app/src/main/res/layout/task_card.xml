@@ -1,95 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="#383838"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_task_card"
+    android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:layout_gravity="center"
-    android:layout_height="wrap_content">
+    android:padding="14dp">
 
     <RadioButton
         android:id="@+id/radioCompleted"
-        android:layout_width="@dimen/_24sdp"
-        android:layout_height="@dimen/_24sdp"
-        android:layout_marginTop="@dimen/_22sdp"
-        android:layout_marginEnd="@dimen/_8sdp"
-        android:padding="0dp"
-        android:buttonTint="@color/white"
-        app:buttonTint="@color/white"/>
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_gravity="top"
+        android:layout_marginTop="2dp"
+        android:background="@drawable/selector_task_radio"
+        android:button="@null" />
 
-   <LinearLayout
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:layout_marginTop="@dimen/_8sdp"
-       android:orientation="vertical"
-       >
-       <TextView
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:id="@+id/txtTitle"
-           android:text="Do Math Homework "
-           android:textColor="#FFFFFF"
-           android:textSize="@dimen/_16sdp"/>
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
 
-       <LinearLayout
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:orientation="horizontal"
-           >
-           <TextView
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content"
-               android:id="@+id/txtDay"
-               android:text="Toaday"
-               android:layout_marginTop="@dimen/_8sdp"
-               android:textColor="#afafaf"
-               android:layout_marginEnd="@dimen/_4sdp"
-               android:textSize="@dimen/_12sdp"/>
-           <TextView
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content"
-               android:id="@+id/txtAt"
-               android:text="At"
-               android:layout_marginTop="@dimen/_8sdp"
-               android:textColor="#afafaf"
-               android:layout_marginEnd="@dimen/_4sdp"
-               android:textSize="@dimen/_12sdp"/>
-           <TextView
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content"
-               android:id="@+id/txtTime"
-               android:text="Time"
-               android:layout_marginTop="@dimen/_8sdp"
-               android:textColor="#afafaf"
-               android:layout_marginEnd="@dimen/_25sdp"
-               android:textSize="@dimen/_12sdp"/>
-           <LinearLayout
-               android:layout_width="match_parent"
-               android:layout_height="@dimen/_30sdp"
-               android:layout_marginTop="@dimen/_4sdp"
-               android:layout_marginBottom="@dimen/_4sdp"
-               android:weightSum="10"
-               android:orientation="horizontal">
-               <include
-                   android:id="@+id/categoryInclude"
-                   layout="@layout/category_card"
-                   android:layout_width="wrap_content"
-                   android:layout_weight="7"
-                   android:layout_marginEnd="@dimen/_8sdp"
-                   android:layout_height="match_parent" />
+        <!-- Top Row: Title + Priority -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-               <include
-                   android:id="@+id/priorityInclude"
-                   layout="@layout/priority_card"
-                   android:layout_width="@dimen/_40sdp"
-                   android:layout_weight="3"
-                   android:layout_marginEnd="@dimen/_4sdp"
-                   android:layout_height="match_parent" />
-           </LinearLayout>
+            <TextView
+                android:id="@+id/txtTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-medium"
+                android:text="Design Sprint: Mobile Checkout Flow"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:textStyle="bold" />
 
-       </LinearLayout>
+            <include
+                android:id="@+id/priorityInclude"
+                layout="@layout/priority_card"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
 
-   </LinearLayout>
+        <!-- Bottom Row: Category Pill + Clock / Time -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
+            <include
+                android:id="@+id/categoryInclude"
+                layout="@layout/category_card"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <ImageView
+                android:layout_width="13dp"
+                android:layout_height="13dp"
+                android:layout_marginStart="10dp"
+                android:src="@drawable/ic_clock_custom"
+                app:tint="@color/text_muted" />
+
+            <TextView
+                android:id="@+id/txtTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:fontFamily="sans-serif"
+                android:text="10:00 AM – 11:30 AM"
+                android:textColor="@color/text_muted"
+                android:textSize="12sp" />
+
+            <!-- Preserved for backwards compatibility with existing bindings -->
+            <TextView
+                android:id="@+id/txtDay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/txtAt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+        </LinearLayout>
+
+    </LinearLayout>
 
 </LinearLayout>

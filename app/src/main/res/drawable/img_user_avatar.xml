@@ -1,0 +1,34 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="36dp"
+    android:height="36dp"
+    android:viewportWidth="36"
+    android:viewportHeight="36">
+    <!-- Base dark background circle -->
+    <path
+        android:fillColor="#374151"
+        android:pathData="M18,0 C27.94,0 36,8.06 36,18 C36,27.94 27.94,36 18,36 C8.06,36 0,27.94 0,18 C0,8.06 8.06,0 18,0 Z" />
+    <!-- Hair back -->
+    <path
+        android:fillColor="#1C1917"
+        android:pathData="M18,4 C13,4 9,8 9,13 C9,18 11,22 12,24 C13,22 14,18 18,18 C22,18 23,22 24,24 C25,22 27,18 27,13 C27,8 23,4 18,4 Z" />
+    <!-- Neck -->
+    <path
+        android:fillColor="#E5B28B"
+        android:pathData="M16,18 L20,18 L20,24 L16,24 Z" />
+    <!-- Head/Face -->
+    <path
+        android:fillColor="#F6CEAC"
+        android:pathData="M18,8 C20.76,8 23,10.69 23,14 C23,17.31 20.76,20 18,20 C15.24,20 13,17.31 13,14 C13,10.69 15.24,8 18,8 Z" />
+    <!-- Hair Front -->
+    <path
+        android:fillColor="#291811"
+        android:pathData="M13,10 C14,8 16,7 18,7 C20,7 22,8 23,10 C22,11 20,11 18,10 C16,11 14,11 13,10 Z" />
+    <!-- Suit / Clothes -->
+    <path
+        android:fillColor="#1E293B"
+        android:pathData="M6,36 C7,29 12,25 18,25 C24,25 29,29 30,36 Z" />
+    <!-- Collar -->
+    <path
+        android:fillColor="#475569"
+        android:pathData="M15,25 L18,29 L21,25 Z" />
+</vector>

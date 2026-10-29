@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.widget.Toast;
 
 import com.example.todolist.InputField;
+import com.example.todolist.R;
 import com.example.todolist.databinding.ActivityRegisterBinding;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
@@ -29,27 +30,52 @@ public class RegisterActivity extends BaseActivity {
         setContentView(binding.getRoot());
 
         InputField usernameField = binding.username;
+        InputField emailField = binding.edtEmailAddress;
         InputField passwordField = binding.passwordField;
         InputField confirmPasswordField = binding.edtConfirmPassword;
 
         usernameField.setLabel("Username");
-        usernameField.setHint("Enter your Username or Email");
+        usernameField.setHint("e.g. elena_rostova");
+        usernameField.setStartIcon(R.drawable.ic_mention);
+        usernameField.setEndIcon(R.drawable.ic_check_purple);
 
-        passwordField.setLabel("Password");
-        passwordField.setHint("● ● ● ● ● ● ● ");
+        emailField.setLabel("Email Address");
+        emailField.setHint("name@company.com");
+        emailField.setStartIcon(R.drawable.ic_mail);
+        emailField.setEndIcon(R.drawable.ic_shield);
+
+        passwordField.setLabel("Master Key");
+        passwordField.setRightLabel("Minimum 8 chars");
+        passwordField.setHint("● ● ● ● ● ● ● ● ● ● ●");
+        passwordField.setStartIcon(R.drawable.ic_lock);
+        passwordField.showStrengthBar(true);
 
         confirmPasswordField.setLabel("Confirm Password");
-        confirmPasswordField.setHint("● ● ● ● ● ● ●");
+        confirmPasswordField.setRightLabel("Enter match");
+        confirmPasswordField.setHint("● ● ● ● ● ● ● ● ● ● ●");
+        confirmPasswordField.setStartIcon(R.drawable.ic_shield_check);
 
         int passwordType = android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD;
         passwordField.setInputType(passwordType);
         confirmPasswordField.setInputType(passwordType);
 
-        binding.btnImg.setOnClickListener(v -> {
-            Intent intent = new Intent(RegisterActivity.this, StartActivity.class);
-            startActivity(intent);
-            finish();
+        final boolean[] isTermsAgreed = {true};
+        binding.checkTerms.setOnClickListener(v -> {
+            isTermsAgreed[0] = !isTermsAgreed[0];
+            binding.checkTerms.setBackgroundResource(
+                    isTermsAgreed[0] ? R.drawable.bg_checkbox_checked : R.drawable.bg_card_input
+            );
         });
+
+        binding.txtTermsLink.setOnClickListener(v -> {
+            Toast.makeText(this, "Terms of Service & Privacy Policy", Toast.LENGTH_SHORT).show();
+        });
+
+        binding.GoogleWithLogin.setOnClickListener(v -> {
+            Toast.makeText(this, "Google Sign-In", Toast.LENGTH_SHORT).show();
+        });
+
+
 
         binding.txtLogin.setOnClickListener(v -> {
             Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
@@ -59,11 +85,17 @@ public class RegisterActivity extends BaseActivity {
 
         binding.btnRegister.setOnClickListener(v -> {
             String username = binding.username.getText().toString().trim();
+            String emailInput = binding.edtEmailAddress.getText().toString().trim();
             String password = binding.passwordField.getText().toString().trim();
             String confirmPassword = binding.edtConfirmPassword.getText().toString().trim();
 
             if (username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
-                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Please fill all required fields", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (!isTermsAgreed[0]) {
+                Toast.makeText(this, "Please agree to the Terms of Service & Privacy Policy", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -79,7 +111,14 @@ public class RegisterActivity extends BaseActivity {
 
             binding.btnRegister.setEnabled(false);
 
-            String email = username.contains("@") ? username : (username.replaceAll("\\s+", "").toLowerCase() + "@todolist.com");
+            String email;
+            if (!emailInput.isEmpty() && emailInput.contains("@")) {
+                email = emailInput;
+            } else if (username.contains("@")) {
+                email = username;
+            } else {
+                email = username.replaceAll("\\s+", "").toLowerCase() + "@todolist.com";
+            }
 
             auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
