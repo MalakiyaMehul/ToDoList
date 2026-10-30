@@ -331,14 +331,7 @@
                 android:layout_height="13dp"
                 android:src="@drawable/ic_terminal_engine" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:fontFamily="sans-serif"
-                android:text="v2.4.1 (Obsidian Engine)"
-                android:textColor="@color/text_muted"
-                android:textSize="11sp" />
+
         </LinearLayout>
 
     </LinearLayout>

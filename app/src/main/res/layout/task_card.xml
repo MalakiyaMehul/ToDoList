@@ -97,4 +97,16 @@
 
     </LinearLayout>
 
+    <!-- Three Dots Options Button -->
+    <ImageButton
+        android:id="@+id/btnTaskOptions"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="6dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Task Options"
+        android:padding="6dp"
+        android:src="@drawable/ic_more_vert_custom"
+        app:tint="@color/text_muted" />
+
 </LinearLayout>

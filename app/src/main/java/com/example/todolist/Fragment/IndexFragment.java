@@ -15,6 +15,7 @@ import android.widget.Toast;
 import com.example.todolist.R;
 import com.example.todolist.TaskInputField;
 import com.example.todolist.activity.EditTaskActivity;
+import com.example.todolist.activity.TaskDetail;
 import com.example.todolist.adapter.TaskAdapter;
 import com.example.todolist.databinding.FragmentIndexBinding;
 import com.example.todolist.model.TaskModel;
@@ -221,7 +222,7 @@ public class IndexFragment extends Fragment {
     }
 
     private void openEditTask(TaskModel taskModel) {
-        Intent intent = new Intent(requireContext(), EditTaskActivity.class);
+        Intent intent = new Intent(requireContext(), TaskDetail.class);
         intent.putExtra("taskId", taskModel.getTaskId());
         intent.putExtra("taskName", taskModel.getTaskName());
         intent.putExtra("description", taskModel.getDescription());

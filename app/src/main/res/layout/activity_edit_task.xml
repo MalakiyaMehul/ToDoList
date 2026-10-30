@@ -43,7 +43,7 @@
                 android:src="@drawable/ic_check_purple" />
         </FrameLayout>
 
-        <!-- Title: Task Details -->
+        <!-- Title: Create Task Modal -->
         <TextView
             android:id="@+id/tvTitle"
             android:layout_width="0dp"
@@ -51,7 +51,7 @@
             android:layout_marginStart="10dp"
             android:layout_weight="1"
             android:fontFamily="sans-serif-medium"
-            android:text="Task Details"
+            android:text="Create Task Modal"
             android:textColor="@color/white"
             android:textSize="17sp"
             android:textStyle="bold" />
@@ -98,909 +98,1127 @@
             android:paddingHorizontal="16dp"
             android:paddingTop="10dp">
 
-            <!-- Quick Action Pills Row -->
+            <!-- Modal Header Row: Close (X) | ● TASK #ID Edit Task | Trash [🗑] | [✓ Save] -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <!-- IN PROGRESS Pill -->
+                <!-- Close Circular Button -->
+                <FrameLayout
+                    android:id="@+id/btnHeaderClose"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_circle_icon_dark"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_close_gray" />
+                </FrameLayout>
+
+                <!-- Task ID & Edit Task Title -->
                 <LinearLayout
-                    android:id="@+id/pillInProgress"
-                    android:layout_width="wrap_content"
-                    android:layout_height="30dp"
-                    android:background="@drawable/bg_tab_selected"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="10dp">
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="● "
-                        android:textColor="@color/white"
-                        android:textSize="8sp" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="● "
+                            android:textColor="#C084FC"
+                            android:textSize="9sp" />
+
+                        <TextView
+                            android:id="@+id/txtTaskIdBadge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-medium"
+                            android:letterSpacing="0.06"
+                            android:text="TASK #4029"
+                            android:textColor="#C084FC"
+                            android:textSize="10sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
 
                     <TextView
+                        android:id="@+id/txtModalHeaderTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="1dp"
                         android:fontFamily="sans-serif-medium"
-                        android:text="IN PROGRESS"
+                        android:text="Edit Task"
                         android:textColor="@color/white"
-                        android:textSize="10sp"
+                        android:textSize="19sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
-                <!-- Sprint Q4 Pill -->
-                <LinearLayout
-                    android:id="@+id/pillSprint"
-                    android:layout_width="wrap_content"
-                    android:layout_height="30dp"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_tab_unselected"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="10dp">
+                <!-- Trash Can Button -->
+                <FrameLayout
+                    android:id="@+id/btnHeaderDelete"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_circle_icon_dark"
+                    android:clickable="true"
+                    android:focusable="true">
 
                     <ImageView
-                        android:layout_width="13dp"
-                        android:layout_height="13dp"
-                        android:src="@drawable/ic_folder_sprint" />
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_trash_custom" />
+                </FrameLayout>
+
+                <!-- Top Save Button -->
+                <LinearLayout
+                    android:id="@+id/btnTopSave"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="10dp"
+                    android:background="@drawable/bg_save_top_pill"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="14dp">
+
+                    <ImageView
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:src="@drawable/ic_check_simple"
+                        app:tint="@color/white" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="6dp"
                         android:fontFamily="sans-serif-medium"
-                        android:text="Sprint Q4"
+                        android:text="Save"
                         android:textColor="@color/white"
-                        android:textSize="11sp"
+                        android:textSize="13sp"
                         android:textStyle="bold" />
                 </LinearLayout>
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="1dp"
-                    android:layout_weight="1" />
-
-                <!-- Edit Pen Button -->
-                <ImageButton
-                    android:id="@+id/btnEditTitle"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:background="@drawable/bg_tab_unselected"
-                    android:contentDescription="Edit"
-                    android:padding="7dp"
-                    android:src="@drawable/ic_notes_pen"
-                    app:tint="@color/white" />
-
-                <!-- Share Button -->
-                <ImageButton
-                    android:id="@+id/btnShare"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_tab_unselected"
-                    android:contentDescription="Share"
-                    android:padding="6dp"
-                    android:src="@drawable/ic_share_export"
-                    app:tint="@color/white" />
             </LinearLayout>
 
-            <!-- 1. Main Task Header Card -->
+            <!-- 1. TASK TITLE Section -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_calendar_card"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:layout_marginTop="20dp"
+                android:orientation="vertical">
 
-                <!-- Badges Row: Priority, Category, ID -->
+                <!-- Label Row: TASK TITLE | Required -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <!-- Priority Badge (Clickable to change priority) -->
-                    <LinearLayout
-                        android:id="@+id/btnCategory"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_priority_container"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="4dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="● "
-                            android:textColor="#F43F5E"
-                            android:textSize="9sp" />
-
-                        <TextView
-                            android:id="@+id/txtTaskPriority"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="High Priority"
-                            android:textColor="#F43F5E"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <!-- Category Badge (Clickable to change category) -->
-                    <LinearLayout
-                        android:id="@+id/layoutCategoryChip"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:background="@drawable/bg_category_unselected"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="4dp">
-
-                        <ImageView
-                            android:id="@+id/categoryicon"
-                            android:layout_width="12dp"
-                            android:layout_height="12dp"
-                            android:layout_marginEnd="4dp"
-                            android:src="@drawable/university"
-                            android:visibility="gone" />
-
-                        <TextView
-                            android:id="@+id/dotCategory"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="● "
-                            android:textColor="#C084FC"
-                            android:textSize="9sp" />
-
-                        <TextView
-                            android:id="@+id/txtCategory"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="Work"
-                            android:textColor="#C084FC"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <View
-                        android:layout_width="0dp"
-                        android:layout_height="1dp"
-                        android:layout_weight="1" />
-
-                    <!-- ID Badge -->
                     <TextView
-                        android:id="@+id/txtTaskIdBadge"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif"
-                        android:text="ID #TK-842"
+                        android:layout_weight="1"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="0.08"
+                        android:text="TASK TITLE"
                         android:textColor="@color/text_muted"
-                        android:textSize="11sp" />
-                </LinearLayout>
-
-                <!-- Title & Completion Row -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:gravity="top"
-                    android:orientation="horizontal">
-
-                    <!-- Custom Completion Circle Checkbox -->
-                    <FrameLayout
-                        android:id="@+id/btnRadioCompleted"
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
-                        android:layout_marginTop="3dp"
-                        android:background="@drawable/bg_timeline_checkbox"
-                        android:clickable="true"
-                        android:focusable="true">
-
-                        <ImageView
-                            android:id="@+id/imgCheckCompleted"
-                            android:layout_width="14dp"
-                            android:layout_height="14dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_check_simple"
-                            app:tint="@color/text_muted" />
-                    </FrameLayout>
-
-                    <!-- Hidden RadioButton for backward compatibility if needed -->
-                    <RadioButton
-                        android:id="@+id/radioCompleted"
-                        android:layout_width="0dp"
-                        android:layout_height="0dp"
-                        android:visibility="gone" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <EditText
-                            android:id="@+id/edtTaskName"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="@null"
-                            android:fontFamily="sans-serif-medium"
-                            android:hint="Task Name"
-                            android:inputType="textCapSentences"
-                            android:text="Design Sprint: Mobile Checkout Flow"
-                            android:textColor="@color/white"
-                            android:textColorHint="@color/text_muted"
-                            android:textSize="20sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/txtCreatedInfo"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:fontFamily="sans-serif"
-                            android:text="Created yesterday by Alex V."
-                            android:textColor="@color/text_muted"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <!-- 2. DESCRIPTION & CONTEXT Card -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_calendar_card"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <!-- Card Header -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:src="@drawable/ic_checklist"
-                        app:tint="#C084FC" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:layout_weight="1"
-                        android:fontFamily="sans-serif-medium"
-                        android:letterSpacing="0.06"
-                        android:text="DESCRIPTION &amp; CONTEXT"
-                        android:textColor="@color/white"
-                        android:textSize="11sp"
+                        android:textSize="10sp"
                         android:textStyle="bold" />
 
                     <TextView
-                        android:id="@+id/btnCopyDesc"
+                        android:id="@+id/badgeRequired"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:fontFamily="sans-serif-medium"
-                        android:text="Copy"
-                        android:textColor="#C084FC"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <!-- Description Multi-Line Text -->
-                <EditText
-                    android:id="@+id/edtDescription"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:background="@null"
-                    android:fontFamily="sans-serif"
-                    android:hint="Add description or context..."
-                    android:inputType="textMultiLine|textCapSentences"
-                    android:lineSpacingExtra="3dp"
-                    android:text="Conduct user journey mapping and review edge cases for 1-click checkout with the design and engineering leads. Ensure iOS and Android payment gateway specs are documented."
-                    android:textColor="#D4D4D8"
-                    android:textColorHint="@color/text_muted"
-                    android:textSize="13sp" />
-
-                <!-- Attachment Preview Banner -->
-                <FrameLayout
-                    android:id="@+id/layoutAttachmentPreview"
-                    android:layout_width="match_parent"
-                    android:layout_height="110dp"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/bg_prototype_preview">
-
-                    <!-- Inner illustration preview -->
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:gravity="center"
-                        android:orientation="vertical">
-
-                        <ImageView
-                            android:layout_width="28dp"
-                            android:layout_height="28dp"
-                            android:src="@drawable/ic_screen_prototype"
-                            app:tint="#C084FC" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:fontFamily="sans-serif"
-                            android:text="Interactive Prototype Preview"
-                            android:textColor="@color/text_muted"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-
-                    <!-- Bottom Overlay Pill -->
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="26dp"
-                        android:layout_gravity="bottom|start"
-                        android:layout_marginStart="10dp"
-                        android:layout_marginBottom="10dp"
-                        android:background="@drawable/bg_tab_unselected"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="10dp">
-
-                        <ImageView
-                            android:layout_width="12dp"
-                            android:layout_height="12dp"
-                            android:src="@drawable/ic_screen_prototype"
-                            app:tint="@color/white" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="6dp"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="checkout_v2_flows_prototype.png"
-                            android:textColor="@color/white"
-                            android:textSize="10sp" />
-                    </LinearLayout>
-                </FrameLayout>
-
-            </LinearLayout>
-
-            <!-- 3. SCHEDULE & TIMELINE Card -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_calendar_card"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <!-- Header: SCHEDULE & TIMELINE + in 45 mins pill -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:src="@drawable/ic_calendar_custom"
-                        app:tint="#C084FC" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:layout_weight="1"
-                        android:fontFamily="sans-serif-medium"
-                        android:letterSpacing="0.06"
-                        android:text="SCHEDULE &amp; TIMELINE"
-                        android:textColor="@color/white"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/txtCountdownPill"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_pill_countdown"
+                        android:background="@drawable/bg_required_pill"
                         android:fontFamily="sans-serif-medium"
                         android:paddingHorizontal="8dp"
                         android:paddingVertical="3dp"
-                        android:text="in 45 mins"
-                        android:textColor="#FB7185"
-                        android:textSize="10sp"
-                        android:textStyle="bold" />
+                        android:text="Required"
+                        android:textColor="#A1A1AA"
+                        android:textSize="10sp" />
                 </LinearLayout>
 
-                <!-- Row 1: Due Date (Clickable) -->
+                <!-- Task Title Input Card -->
                 <LinearLayout
-                    android:id="@+id/cardDueDate"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:clickable="true"
-                    android:focusable="true"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_calendar_card"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="12dp">
+
+                    <EditText
+                        android:id="@+id/edtTaskName"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@null"
+                        android:fontFamily="sans-serif-medium"
+                        android:hint="Design Sprint: Mobile Checkout Flow"
+                        android:inputType="textCapSentences"
+                        android:textColor="@color/white"
+                        android:textColorHint="@color/text_muted"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:id="@+id/btnClearTitle"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginStart="8dp"
+                        android:clickable="true"
+                        android:contentDescription="Clear"
+                        android:focusable="true"
+                        android:src="@drawable/ic_clear_circle" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 2. DETAILS & CONTEXT Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="vertical">
+
+                <!-- Label Row: DETAILS & CONTEXT | Markdown supported -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <FrameLayout
-                        android:layout_width="34dp"
-                        android:layout_height="34dp"
-                        android:background="@drawable/bg_tab_unselected">
-
-                        <ImageView
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_calendar_custom"
-                            app:tint="@color/white" />
-                    </FrameLayout>
-
-                    <LinearLayout
+                    <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
                         android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="0.08"
+                        android:text="DETAILS &amp; CONTEXT"
+                        android:textColor="@color/text_muted"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:src="@drawable/ic_markdown" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="5dp"
                             android:fontFamily="sans-serif"
-                            android:text="Due Date"
+                            android:text="Markdown supported"
                             android:textColor="@color/text_muted"
-                            android:textSize="11sp" />
+                            android:textSize="10sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Description Input Card -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_calendar_card"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <EditText
+                        android:id="@+id/edtDescription"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@null"
+                        android:fontFamily="sans-serif"
+                        android:gravity="top|start"
+                        android:hint="Conduct user journey mapping and review edge cases for 1-click checkout with the design and engineering leads. Ensure iOS and Android payment gateway specs are documented."
+                        android:inputType="textMultiLine|textCapSentences"
+                        android:lineSpacingExtra="3dp"
+                        android:minHeight="85dp"
+                        android:textColor="#D4D4D8"
+                        android:textColorHint="@color/text_muted"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 3. SCHEDULE Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="vertical">
+
+                <!-- Label Row: SCHEDULE | EST (UTC-4) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="0.08"
+                        android:text="SCHEDULE"
+                        android:textColor="@color/text_muted"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="12dp"
+                            android:layout_height="12dp"
+                            android:src="@drawable/ic_globe" />
+
+                        <TextView
+                            android:id="@+id/txtTimezone"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="5dp"
+                            android:fontFamily="sans-serif"
+                            android:text="EST (UTC-4)"
+                            android:textColor="@color/text_muted"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Due Date & Target Time 2-Card Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal">
+
+                    <!-- Left Card: Due Date -->
+                    <LinearLayout
+                        android:id="@+id/cardDueDate"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_calendar_card"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:orientation="vertical"
+                        android:padding="14dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="14dp"
+                                android:layout_height="14dp"
+                                android:src="@drawable/ic_calendar_custom"
+                                app:tint="@color/text_muted" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="6dp"
+                                android:layout_weight="1"
+                                android:fontFamily="sans-serif"
+                                android:text="Due Date"
+                                android:textColor="@color/text_muted"
+                                android:textSize="11sp" />
+
+                            <ImageView
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
+                                android:src="@drawable/ic_chevron_down" />
+                        </LinearLayout>
 
                         <TextView
                             android:id="@+id/txtDueDate"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
+                            android:layout_marginTop="8dp"
                             android:fontFamily="sans-serif-medium"
-                            android:text="Today, Oct 24, 2024"
+                            android:text="Today, Oct 24"
                             android:textColor="@color/white"
-                            android:textSize="13sp"
+                            android:textSize="15sp"
                             android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:src="@drawable/arrow_right"
-                        app:tint="@color/text_muted" />
-                </LinearLayout>
-
-                <!-- Row 2: Allocated Window (Clickable) -->
-                <LinearLayout
-                    android:id="@+id/cardTargetTime"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <FrameLayout
-                        android:layout_width="34dp"
-                        android:layout_height="34dp"
-                        android:background="@drawable/bg_tab_unselected">
-
-                        <ImageView
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_clock_custom"
-                            app:tint="@color/white" />
-                    </FrameLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/txtDueCountdown"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
                             android:fontFamily="sans-serif"
-                            android:text="Allocated Window"
-                            android:textColor="@color/text_muted"
+                            android:text="Ends in 6h 40m"
+                            android:textColor="#C084FC"
                             android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <!-- Right Card: Target Time -->
+                    <LinearLayout
+                        android:id="@+id/cardTargetTime"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_calendar_card"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:orientation="vertical"
+                        android:padding="14dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="14dp"
+                                android:layout_height="14dp"
+                                android:src="@drawable/ic_clock_custom"
+                                app:tint="@color/text_muted" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="6dp"
+                                android:layout_weight="1"
+                                android:fontFamily="sans-serif"
+                                android:text="Target Time"
+                                android:textColor="@color/text_muted"
+                                android:textSize="11sp" />
+
+                            <ImageView
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
+                                android:src="@drawable/ic_chevron_down" />
+                        </LinearLayout>
 
                         <TextView
                             android:id="@+id/txtTaskTime"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
+                            android:layout_marginTop="8dp"
                             android:fontFamily="sans-serif-medium"
-                            android:text="10:00 AM – 11:30 AM (90 mins)"
+                            android:text="10:00 AM"
                             android:textColor="@color/white"
-                            android:textSize="13sp"
+                            android:textSize="15sp"
                             android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/txtTimeDuration"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="sans-serif"
+                            android:text="45m slot allocated"
+                            android:textColor="@color/text_muted"
+                            android:textSize="11sp" />
                     </LinearLayout>
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:src="@drawable/arrow_right"
-                        app:tint="@color/text_muted" />
                 </LinearLayout>
+            </LinearLayout>
 
-                <!-- Row 3: Notification -->
+            <!-- 4. CATEGORY Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="vertical">
+
+                <!-- Label Row: CATEGORY | Selected: Work -->
                 <LinearLayout
-                    android:id="@+id/cardNotification"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:clickable="true"
-                    android:focusable="true"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <FrameLayout
-                        android:layout_width="34dp"
-                        android:layout_height="34dp"
-                        android:background="@drawable/bg_tab_unselected">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="0.08"
+                        android:text="CATEGORY"
+                        android:textColor="@color/text_muted"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/txtSelectedCategoryLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Selected: Work"
+                        android:textColor="#C084FC"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Category 2x2 Grid: Row 1 (Work & Personal) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal">
+
+                    <!-- Work Card -->
+                    <LinearLayout
+                        android:id="@+id/cardCategoryWork"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_category_card_selected"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="12dp">
+
+                        <FrameLayout
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_circle_icon_dark">
+
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_briefcase_custom"
+                                app:tint="@color/white" />
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/txtTitleWork"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:text="Work"
+                                android:textColor="@color/white"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/txtSubWork"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif"
+                                android:singleLine="true"
+                                android:text="Active spr..."
+                                android:textColor="#E0E7FF"
+                                android:textSize="10sp" />
+                        </LinearLayout>
 
                         <ImageView
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
+                            android:id="@+id/imgWorkCheck"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:src="@drawable/ic_check_circle_purple"
+                            android:visibility="visible" />
+                    </LinearLayout>
+
+                    <!-- Personal Card -->
+                    <LinearLayout
+                        android:id="@+id/cardCategoryPersonal"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_category_card_unselected"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="12dp">
+
+                        <FrameLayout
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_circle_icon_dark">
+
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_user_custom"
+                                app:tint="@color/white" />
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/txtTitlePersonal"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:text="Personal"
+                                android:textColor="@color/white"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/txtSubPersonal"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif"
+                                android:singleLine="true"
+                                android:text="Private list"
+                                android:textColor="@color/text_muted"
+                                android:textSize="10sp" />
+                        </LinearLayout>
+
+                        <ImageView
+                            android:id="@+id/imgPersonalCheck"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:src="@drawable/ic_check_circle_purple"
+                            android:visibility="gone" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Category 2x2 Grid: Row 2 (Design & Health) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal">
+
+                    <!-- Design Card -->
+                    <LinearLayout
+                        android:id="@+id/cardCategoryDesign"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_category_card_unselected"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="12dp">
+
+                        <FrameLayout
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_circle_icon_dark">
+
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_design_custom"
+                                app:tint="@color/white" />
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/txtTitleDesign"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:text="Design"
+                                android:textColor="@color/white"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/txtSubDesign"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif"
+                                android:singleLine="true"
+                                android:text="Figma ass..."
+                                android:textColor="@color/text_muted"
+                                android:textSize="10sp" />
+                        </LinearLayout>
+
+                        <ImageView
+                            android:id="@+id/imgDesignCheck"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:src="@drawable/ic_check_circle_purple"
+                            android:visibility="gone" />
+                    </LinearLayout>
+
+                    <!-- Health Card -->
+                    <LinearLayout
+                        android:id="@+id/cardCategoryHealth"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_category_card_unselected"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="12dp">
+
+                        <FrameLayout
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_circle_icon_dark">
+
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_health_custom"
+                                app:tint="@color/white" />
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/txtTitleHealth"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:text="Health"
+                                android:textColor="@color/white"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/txtSubHealth"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif"
+                                android:singleLine="true"
+                                android:text="Habit trac..."
+                                android:textColor="@color/text_muted"
+                                android:textSize="10sp" />
+                        </LinearLayout>
+
+                        <ImageView
+                            android:id="@+id/imgHealthCheck"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:src="@drawable/ic_check_circle_purple"
+                            android:visibility="gone" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 5. PRIORITY LEVEL Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="vertical">
+
+                <!-- Label Row: PRIORITY LEVEL | Urgent attention -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="0.08"
+                        android:text="PRIORITY LEVEL"
+                        android:textColor="@color/text_muted"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/txtPriorityStatusLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Urgent attention"
+                        android:textColor="#F43F5E"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- 3 Priority Chips Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal">
+
+                    <!-- Low Priority -->
+                    <LinearLayout
+                        android:id="@+id/chipPriorityLow"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_priority_chip_unselected"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:paddingVertical="10dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/dotPriorityLow"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="● "
+                                android:textColor="@color/text_muted"
+                                android:textSize="9sp" />
+
+                            <TextView
+                                android:id="@+id/txtPriorityLow"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:text="Low"
+                                android:textColor="@color/white"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/subPriorityLow"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="sans-serif"
+                            android:text="P3"
+                            android:textColor="@color/text_muted"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+
+                    <!-- Medium Priority -->
+                    <LinearLayout
+                        android:id="@+id/chipPriorityMedium"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="4dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_priority_chip_unselected"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:paddingVertical="10dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/dotPriorityMedium"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="● "
+                                android:textColor="#C084FC"
+                                android:textSize="9sp" />
+
+                            <TextView
+                                android:id="@+id/txtPriorityMedium"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:text="Medium"
+                                android:textColor="@color/white"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/subPriorityMedium"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="sans-serif"
+                            android:text="P2"
+                            android:textColor="@color/text_muted"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+
+                    <!-- High Priority (Selected by default) -->
+                    <LinearLayout
+                        android:id="@+id/chipPriorityHigh"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_priority_chip_high_selected"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:paddingVertical="10dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/dotPriorityHigh"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="● "
+                                android:textColor="@color/white"
+                                android:textSize="9sp" />
+
+                            <TextView
+                                android:id="@+id/txtPriorityHigh"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:text="High"
+                                android:textColor="@color/white"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/subPriorityHigh"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="P1 Critical"
+                            android:textColor="@color/white"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 6. Pulse Reminder Card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_calendar_card"
+                android:orientation="vertical"
+                android:padding="14dp">
+
+                <!-- Reminder Top Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <!-- Bell Icon Frame -->
+                    <FrameLayout
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="@drawable/bg_circle_icon_dark">
+
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
                             android:layout_gravity="center"
                             android:src="@drawable/ic_bell_pulse"
-                            app:tint="@color/white" />
+                            app:tint="#C084FC" />
                     </FrameLayout>
 
+                    <!-- Text Info -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
+                        android:layout_marginStart="10dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/txtReminderTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif"
-                            android:text="Notification"
-                            android:textColor="@color/text_muted"
-                            android:textSize="11sp" />
+                            android:fontFamily="sans-serif-medium"
+                            android:text="Pulse Reminder: Enabled"
+                            android:textColor="@color/white"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="15 minutes before via Push &amp; Haptic"
-                            android:textColor="@color/white"
-                            android:textSize="13sp"
-                            android:textStyle="bold" />
+                            android:fontFamily="sans-serif"
+                            android:text="Notify 15 min prior with haptic alert and persistent ambient pulse."
+                            android:textColor="@color/text_muted"
+                            android:textSize="10sp" />
                     </LinearLayout>
 
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:src="@drawable/arrow_right"
-                        app:tint="@color/text_muted" />
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <!-- 4. SUBTASKS Card -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_calendar_card"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <!-- Header: SUBTASKS + 2 of 4 Completed -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:src="@drawable/ic_sliders_custom"
-                        app:tint="#C084FC" />
-
+                    <!-- Haptic Badge -->
                     <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:layout_weight="1"
-                        android:fontFamily="sans-serif-medium"
-                        android:letterSpacing="0.06"
-                        android:text="SUBTASKS"
-                        android:textColor="@color/white"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/txtSubtasksCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/bg_badge_haptic"
                         android:fontFamily="sans-serif-medium"
-                        android:text="2 of 4 Completed"
-                        android:textColor="@color/text_muted"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
+                        android:paddingHorizontal="7dp"
+                        android:paddingVertical="3dp"
+                        android:text="Haptic"
+                        android:textColor="#C084FC"
+                        android:textSize="10sp" />
 
-                <!-- Progress Bar -->
-                <ProgressBar
-                    android:id="@+id/progressBarSubtasks"
-                    style="?android:attr/progressBarStyleHorizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="5dp"
-                    android:layout_marginTop="10dp"
-                    android:max="100"
-                    android:progress="50"
-                    android:progressDrawable="@drawable/progress_bar_horizontal" />
-
-                <!-- Subtask Item 1 -->
-                <LinearLayout
-                    android:id="@+id/layoutSubtask1"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <FrameLayout
-                        android:id="@+id/chkSubtask1"
-                        android:layout_width="22dp"
-                        android:layout_height="22dp"
-                        android:background="@drawable/bg_timeline_checkbox_checked">
-
-                        <ImageView
-                            android:id="@+id/imgSubtask1"
-                            android:layout_width="12dp"
-                            android:layout_height="12dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_check_simple"
-                            app:tint="@color/white" />
-                    </FrameLayout>
-
-                    <TextView
-                        android:id="@+id/txtSubtask1"
-                        android:layout_width="0dp"
+                    <!-- Switch Toggle -->
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchReminder"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:fontFamily="sans-serif"
-                        android:text="Benchmark competitor flows"
-                        android:textColor="@color/text_muted"
-                        android:textSize="13sp" />
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:src="@drawable/ic_drag_dots" />
+                        android:checked="true"
+                        app:thumbTint="@color/white"
+                        app:trackTint="#A855F7" />
                 </LinearLayout>
 
-                <!-- Subtask Item 2 -->
+                <!-- Offset Options Row -->
                 <LinearLayout
-                    android:id="@+id/layoutSubtask2"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <FrameLayout
-                        android:id="@+id/chkSubtask2"
-                        android:layout_width="22dp"
-                        android:layout_height="22dp"
-                        android:background="@drawable/bg_timeline_checkbox_checked">
-
-                        <ImageView
-                            android:id="@+id/imgSubtask2"
-                            android:layout_width="12dp"
-                            android:layout_height="12dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_check_simple"
-                            app:tint="@color/white" />
-                    </FrameLayout>
-
                     <TextView
-                        android:id="@+id/txtSubtask2"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
                         android:fontFamily="sans-serif"
-                        android:text="Draft wireframes in Figma"
+                        android:text="Alert offset:"
                         android:textColor="@color/text_muted"
-                        android:textSize="13sp" />
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:src="@drawable/ic_drag_dots" />
-                </LinearLayout>
-
-                <!-- Subtask Item 3 -->
-                <LinearLayout
-                    android:id="@+id/layoutSubtask3"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <FrameLayout
-                        android:id="@+id/chkSubtask3"
-                        android:layout_width="22dp"
-                        android:layout_height="22dp"
-                        android:background="@drawable/bg_timeline_checkbox">
-
-                        <ImageView
-                            android:id="@+id/imgSubtask3"
-                            android:layout_width="12dp"
-                            android:layout_height="12dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_check_simple"
-                            app:tint="@color/text_muted" />
-                    </FrameLayout>
+                        android:textSize="11sp" />
 
                     <TextView
-                        android:id="@+id/txtSubtask3"
-                        android:layout_width="0dp"
+                        android:id="@+id/pillOffset15m"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:fontFamily="sans-serif"
-                        android:text="Engineering feasibility sync"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_alert_offset_selected"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans-serif-medium"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="5dp"
+                        android:text="15m before"
                         android:textColor="@color/white"
-                        android:textSize="13sp" />
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:src="@drawable/ic_drag_dots" />
-                </LinearLayout>
-
-                <!-- Subtask Item 4 -->
-                <LinearLayout
-                    android:id="@+id/layoutSubtask4"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <FrameLayout
-                        android:id="@+id/chkSubtask4"
-                        android:layout_width="22dp"
-                        android:layout_height="22dp"
-                        android:background="@drawable/bg_timeline_checkbox">
-
-                        <ImageView
-                            android:id="@+id/imgSubtask4"
-                            android:layout_width="12dp"
-                            android:layout_height="12dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_check_simple"
-                            app:tint="@color/text_muted" />
-                    </FrameLayout>
+                        android:textSize="11sp" />
 
                     <TextView
-                        android:id="@+id/txtSubtask4"
-                        android:layout_width="0dp"
+                        android:id="@+id/pillOffset30m"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        android:background="@drawable/bg_alert_offset_unselected"
+                        android:clickable="true"
+                        android:focusable="true"
                         android:fontFamily="sans-serif"
-                        android:text="Present mockups to product team"
-                        android:textColor="@color/white"
-                        android:textSize="13sp" />
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="5dp"
+                        android:text="30m"
+                        android:textColor="@color/text_muted"
+                        android:textSize="11sp" />
 
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:src="@drawable/ic_drag_dots" />
+                    <TextView
+                        android:id="@+id/pillOffset1h"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:background="@drawable/bg_alert_offset_unselected"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans-serif"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="5dp"
+                        android:text="1h"
+                        android:textColor="@color/text_muted"
+                        android:textSize="11sp" />
                 </LinearLayout>
-
-                <!-- + Add Subtask Button -->
-                <TextView
-                    android:id="@+id/btnAddSubTask"
-                    android:layout_width="match_parent"
-                    android:layout_height="38dp"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/bg_tab_unselected"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:fontFamily="sans-serif-medium"
-                    android:text="+ Add Subtask"
-                    android:textColor="@color/white"
-                    android:textSize="13sp" />
             </LinearLayout>
 
-            <!-- 5. Team / Collaborators Card -->
+            <!-- 7. Collaborators Card -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="16dp"
                 android:background="@drawable/bg_calendar_card"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:padding="14dp">
 
-                <!-- Overlapping Avatars -->
+                <!-- Overlapping Avatars Frame -->
                 <FrameLayout
-                    android:layout_width="66dp"
+                    android:layout_width="44dp"
                     android:layout_height="32dp">
 
-                    <!-- Avatar 1: JD -->
-                    <TextView
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
+                    <ImageView
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
                         android:layout_gravity="start|center_vertical"
-                        android:background="@drawable/bg_streak_circle"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="JD"
-                        android:textColor="@color/white"
-                        android:textSize="9sp"
-                        android:textStyle="bold" />
+                        android:background="@drawable/img_user_avatar"
+                        android:src="@drawable/img_user_avatar" />
 
-                    <!-- Avatar 2: NK -->
-                    <TextView
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
-                        android:layout_gravity="center"
-                        android:background="@drawable/bg_category_unselected"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="NK"
-                        android:textColor="#C084FC"
-                        android:textSize="9sp"
-                        android:textStyle="bold" />
-
-                    <!-- Avatar 3: +2 -->
-                    <TextView
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
+                    <ImageView
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
                         android:layout_gravity="end|center_vertical"
-                        android:background="@drawable/bg_tab_unselected"
-                        android:fontFamily="sans-serif-medium"
-                        android:gravity="center"
-                        android:text="+2"
-                        android:textColor="@color/text_muted"
-                        android:textSize="9sp"
-                        android:textStyle="bold" />
+                        android:background="@drawable/img_user_avatar"
+                        android:src="@drawable/img_user_avatar" />
                 </FrameLayout>
 
+                <!-- Collaborator Names -->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -1011,32 +1229,38 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:text="Design Core Team"
-                        android:textColor="@color/white"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
+                        android:fontFamily="sans-serif"
+                        android:text="Collaborators (2)"
+                        android:textColor="@color/text_muted"
+                        android:textSize="10sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:fontFamily="sans-serif"
-                        android:text="4 team members synced"
-                        android:textColor="@color/text_muted"
-                        android:textSize="11sp" />
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Alex Rivera &amp; Maya Chen"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
 
-                <!-- Add Team Member Button -->
-                <ImageButton
-                    android:id="@+id/btnAddMember"
-                    android:layout_width="34dp"
-                    android:layout_height="34dp"
-                    android:background="@drawable/bg_tab_unselected"
-                    android:contentDescription="Add Member"
-                    android:padding="7dp"
-                    android:src="@drawable/ic_user_add"
-                    app:tint="@color/text_muted" />
+                <!-- Add Collaborator Button -->
+                <FrameLayout
+                    android:id="@+id/btnAddCollaborator"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="@drawable/bg_circle_icon_dark"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_user_add"
+                        app:tint="@color/white" />
+                </FrameLayout>
             </LinearLayout>
 
         </LinearLayout>
@@ -1054,7 +1278,7 @@
         android:paddingBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- Primary Action: Start Focus Session / Save -->
+        <!-- 1. Primary Button: Save Changes -->
         <FrameLayout
             android:id="@+id/btnEditTask"
             android:layout_width="match_parent"
@@ -1073,44 +1297,43 @@
                 <ImageView
                     android:layout_width="16dp"
                     android:layout_height="16dp"
-                    android:src="@drawable/ic_play_triangle"
+                    android:src="@drawable/ic_check_simple"
                     app:tint="#200A4A" />
 
                 <TextView
+                    android:id="@+id/txtSaveChanges"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:fontFamily="sans-serif-medium"
-                    android:text="Start Focus Session"
+                    android:text="Save Changes"
                     android:textColor="#200A4A"
                     android:textSize="15sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </FrameLayout>
 
-        <!-- Secondary Action: Delete Task -->
+        <!-- 2. Destructive Button: Delete Task -->
         <LinearLayout
             android:id="@+id/btnDeleteTask"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:layout_gravity="center_horizontal"
             android:layout_marginTop="8dp"
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
-            android:orientation="horizontal"
-            android:paddingHorizontal="16dp">
+            android:orientation="horizontal">
 
             <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:src="@drawable/trash"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@drawable/ic_trash_custom"
                 app:tint="#FB7185" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
+                android:layout_marginStart="8dp"
                 android:fontFamily="sans-serif-medium"
                 android:text="Delete Task"
                 android:textColor="#FB7185"

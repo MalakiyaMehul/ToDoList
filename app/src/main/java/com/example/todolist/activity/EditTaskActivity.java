@@ -2,27 +2,19 @@ package com.example.todolist.activity;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.EditText;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.PopupMenu;
 
 import com.example.todolist.R;
-import com.example.todolist.activity.home.DialogAddPriority;
-import com.example.todolist.activity.home.ItemAdd_Category;
 import com.example.todolist.databinding.ActivityEditTaskBinding;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -48,14 +40,7 @@ public class EditTaskActivity extends BaseActivity {
     private String selectedCategory = "Work";
     private String selectedPriority = "High";
     private boolean completed = false;
-
-    private int selectedYear;
-    private int selectedMonth;
-    private int selectedDay;
-    private int selectedHour;
-    private int selectedMinute;
-
-    private boolean[] subtaskDone = new boolean[]{true, true, false, false};
+    private int selectedAlertOffsetMinutes = 15;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,264 +89,287 @@ public class EditTaskActivity extends BaseActivity {
     private void setupUI() {
         // ID badge
         if (taskId != null && !taskId.isEmpty()) {
-            String shortId = taskId.length() > 6 ? taskId.substring(0, 6) : taskId;
-            binding.txtTaskIdBadge.setText("ID #" + shortId.toUpperCase(Locale.ENGLISH));
+            String shortId = taskId.length() > 4 ? taskId.substring(0, 4) : taskId;
+            binding.txtTaskIdBadge.setText("TASK #" + shortId.toUpperCase(Locale.ENGLISH));
+        } else {
+            binding.txtTaskIdBadge.setText("TASK #4029");
         }
 
-        // Category
-        binding.txtCategory.setText(selectedCategory);
-        if (categoryColor != null && !categoryColor.trim().isEmpty()) {
-            try {
-                int c = Color.parseColor(categoryColor.trim());
-                binding.dotCategory.setTextColor(c);
-                binding.txtCategory.setTextColor(c);
-            } catch (Exception ignored) {}
-        }
+        // Category UI
+        updateCategoryUI(selectedCategory);
 
-        // Priority
+        // Priority UI
         updatePriorityUI(selectedPriority);
 
-        // Date & Time
-        if (selectedDate != null && !selectedDate.isEmpty()) {
-            binding.txtDueDate.setText(formatDisplayDate(selectedDate));
+        // Date & Time UI
+        setupDateUI(selectedDate);
+        setupTimeUI(selectedTime);
+
+        // Alert offset initial state
+        updateAlertOffsetUI(selectedAlertOffsetMinutes);
+    }
+
+    private void setupDateUI(String dateStr) {
+        if (dateStr != null && !dateStr.trim().isEmpty()) {
+            binding.txtDueDate.setText(formatDisplayDate(dateStr));
+            binding.txtDueCountdown.setText("Ends in 6h 40m");
         } else {
-            binding.txtDueDate.setText("Today, " + new SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH).format(new Date()));
+            String todayStr = new SimpleDateFormat("MMM d", Locale.ENGLISH).format(new Date());
+            binding.txtDueDate.setText("Today, " + todayStr);
+            binding.txtDueCountdown.setText("Ends in 6h 40m");
         }
+    }
 
-        if (selectedTime != null && !selectedTime.isEmpty()) {
-            binding.txtTaskTime.setText(formatDisplayTime(selectedTime));
+    private void setupTimeUI(String timeStr) {
+        if (timeStr != null && !timeStr.trim().isEmpty()) {
+            binding.txtTaskTime.setText(formatDisplayTime(timeStr));
+            binding.txtTimeDuration.setText("45m slot allocated");
+        } else {
+            binding.txtTaskTime.setText("10:00 AM");
+            binding.txtTimeDuration.setText("45m slot allocated");
         }
+    }
 
-        // Completion status
-        updateCompletionUI();
+    private void updateCategoryUI(String category) {
+        if (category == null || category.trim().isEmpty()) {
+            category = "Work";
+        }
+        selectedCategory = category;
+        binding.txtSelectedCategoryLabel.setText("Selected: " + category);
 
-        // Subtasks initial setup
-        updateSubtasksState();
+        // Reset all 4 cards to unselected state
+        binding.cardCategoryWork.setBackgroundResource(R.drawable.bg_category_card_unselected);
+        binding.imgWorkCheck.setVisibility(View.GONE);
+        binding.txtSubWork.setTextColor(Color.parseColor("#8E93A0"));
+
+        binding.cardCategoryPersonal.setBackgroundResource(R.drawable.bg_category_card_unselected);
+        binding.imgPersonalCheck.setVisibility(View.GONE);
+        binding.txtSubPersonal.setTextColor(Color.parseColor("#8E93A0"));
+
+        binding.cardCategoryDesign.setBackgroundResource(R.drawable.bg_category_card_unselected);
+        binding.imgDesignCheck.setVisibility(View.GONE);
+        binding.txtSubDesign.setTextColor(Color.parseColor("#8E93A0"));
+
+        binding.cardCategoryHealth.setBackgroundResource(R.drawable.bg_category_card_unselected);
+        binding.imgHealthCheck.setVisibility(View.GONE);
+        binding.txtSubHealth.setTextColor(Color.parseColor("#8E93A0"));
+
+        // Highlight selected card
+        if (category.equalsIgnoreCase("Work")) {
+            binding.cardCategoryWork.setBackgroundResource(R.drawable.bg_category_card_selected);
+            binding.imgWorkCheck.setVisibility(View.VISIBLE);
+            binding.txtSubWork.setTextColor(Color.parseColor("#E0E7FF"));
+            categoryColor = "#7C3AED";
+        } else if (category.equalsIgnoreCase("Personal")) {
+            binding.cardCategoryPersonal.setBackgroundResource(R.drawable.bg_category_card_selected);
+            binding.imgPersonalCheck.setVisibility(View.VISIBLE);
+            binding.txtSubPersonal.setTextColor(Color.parseColor("#E0E7FF"));
+            categoryColor = "#2563EB";
+        } else if (category.equalsIgnoreCase("Design")) {
+            binding.cardCategoryDesign.setBackgroundResource(R.drawable.bg_category_card_selected);
+            binding.imgDesignCheck.setVisibility(View.VISIBLE);
+            binding.txtSubDesign.setTextColor(Color.parseColor("#E0E7FF"));
+            categoryColor = "#A855F7";
+        } else if (category.equalsIgnoreCase("Health")) {
+            binding.cardCategoryHealth.setBackgroundResource(R.drawable.bg_category_card_selected);
+            binding.imgHealthCheck.setVisibility(View.VISIBLE);
+            binding.txtSubHealth.setTextColor(Color.parseColor("#E0E7FF"));
+            categoryColor = "#10B981";
+        } else {
+            // Default to Work if unknown
+            binding.cardCategoryWork.setBackgroundResource(R.drawable.bg_category_card_selected);
+            binding.imgWorkCheck.setVisibility(View.VISIBLE);
+            binding.txtSubWork.setTextColor(Color.parseColor("#E0E7FF"));
+        }
     }
 
     private void updatePriorityUI(String priority) {
+        if (priority == null || priority.trim().isEmpty()) {
+            priority = "High";
+        }
         selectedPriority = priority;
-        String displayPrio;
-        int color;
-        int bgTint;
+
+        // Reset all priority chips to unselected
+        binding.chipPriorityLow.setBackgroundResource(R.drawable.bg_priority_chip_unselected);
+        binding.dotPriorityLow.setTextColor(Color.parseColor("#8E93A0"));
+        binding.txtPriorityLow.setTextColor(Color.WHITE);
+        binding.subPriorityLow.setTextColor(Color.parseColor("#8E93A0"));
+
+        binding.chipPriorityMedium.setBackgroundResource(R.drawable.bg_priority_chip_unselected);
+        binding.dotPriorityMedium.setTextColor(Color.parseColor("#C084FC"));
+        binding.txtPriorityMedium.setTextColor(Color.WHITE);
+        binding.subPriorityMedium.setTextColor(Color.parseColor("#8E93A0"));
+
+        binding.chipPriorityHigh.setBackgroundResource(R.drawable.bg_priority_chip_unselected);
+        binding.dotPriorityHigh.setTextColor(Color.parseColor("#F43F5E"));
+        binding.txtPriorityHigh.setTextColor(Color.WHITE);
+        binding.subPriorityHigh.setTextColor(Color.parseColor("#8E93A0"));
 
         if (priority.equalsIgnoreCase("High") || priority.equals("1")) {
-            displayPrio = "High Priority";
-            color = Color.parseColor("#F43F5E");
-            bgTint = Color.parseColor("#381A24");
-        } else if (priority.equalsIgnoreCase("Low") || priority.equals("3")) {
-            displayPrio = "Low Priority";
-            color = Color.parseColor("#94A3B8");
-            bgTint = Color.parseColor("#1F2430");
-        } else {
-            displayPrio = "Medium Priority";
-            color = Color.parseColor("#C084FC");
-            bgTint = Color.parseColor("#291C3D");
-        }
+            binding.chipPriorityHigh.setBackgroundResource(R.drawable.bg_priority_chip_high_selected);
+            binding.dotPriorityHigh.setTextColor(Color.WHITE);
+            binding.txtPriorityHigh.setTextColor(Color.WHITE);
+            binding.subPriorityHigh.setTextColor(Color.WHITE);
 
-        binding.txtTaskPriority.setText(displayPrio);
-        binding.txtTaskPriority.setTextColor(color);
-        binding.btnCategory.setBackgroundTintList(ColorStateList.valueOf(bgTint));
+            binding.txtPriorityStatusLabel.setText("Urgent attention");
+            binding.txtPriorityStatusLabel.setTextColor(Color.parseColor("#F43F5E"));
+        } else if (priority.equalsIgnoreCase("Low") || priority.equals("3")) {
+            binding.chipPriorityLow.setBackgroundResource(R.drawable.bg_category_card_selected);
+            binding.dotPriorityLow.setTextColor(Color.WHITE);
+            binding.txtPriorityLow.setTextColor(Color.WHITE);
+            binding.subPriorityLow.setTextColor(Color.WHITE);
+
+            binding.txtPriorityStatusLabel.setText("Low Priority");
+            binding.txtPriorityStatusLabel.setTextColor(Color.parseColor("#94A3B8"));
+        } else {
+            // Medium
+            binding.chipPriorityMedium.setBackgroundResource(R.drawable.bg_category_card_selected);
+            binding.dotPriorityMedium.setTextColor(Color.WHITE);
+            binding.txtPriorityMedium.setTextColor(Color.WHITE);
+            binding.subPriorityMedium.setTextColor(Color.WHITE);
+
+            binding.txtPriorityStatusLabel.setText("Normal attention");
+            binding.txtPriorityStatusLabel.setTextColor(Color.parseColor("#C084FC"));
+        }
     }
 
-    private void updateCompletionUI() {
-        if (completed) {
-            binding.btnRadioCompleted.setBackgroundResource(R.drawable.bg_timeline_checkbox_checked);
-            binding.imgCheckCompleted.setColorFilter(Color.WHITE);
-            binding.edtTaskName.setPaintFlags(binding.edtTaskName.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-        } else {
-            binding.btnRadioCompleted.setBackgroundResource(R.drawable.bg_timeline_checkbox);
-            binding.imgCheckCompleted.setColorFilter(Color.parseColor("#4B4D5E"));
-            binding.edtTaskName.setPaintFlags(binding.edtTaskName.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+    private void updateAlertOffsetUI(int minutes) {
+        selectedAlertOffsetMinutes = minutes;
+
+        binding.pillOffset15m.setBackgroundResource(R.drawable.bg_alert_offset_unselected);
+        binding.pillOffset15m.setTextColor(Color.parseColor("#8E93A0"));
+
+        binding.pillOffset30m.setBackgroundResource(R.drawable.bg_alert_offset_unselected);
+        binding.pillOffset30m.setTextColor(Color.parseColor("#8E93A0"));
+
+        binding.pillOffset1h.setBackgroundResource(R.drawable.bg_alert_offset_unselected);
+        binding.pillOffset1h.setTextColor(Color.parseColor("#8E93A0"));
+
+        if (minutes == 15) {
+            binding.pillOffset15m.setBackgroundResource(R.drawable.bg_alert_offset_selected);
+            binding.pillOffset15m.setTextColor(Color.WHITE);
+        } else if (minutes == 30) {
+            binding.pillOffset30m.setBackgroundResource(R.drawable.bg_alert_offset_selected);
+            binding.pillOffset30m.setTextColor(Color.WHITE);
+        } else if (minutes == 60) {
+            binding.pillOffset1h.setBackgroundResource(R.drawable.bg_alert_offset_selected);
+            binding.pillOffset1h.setTextColor(Color.WHITE);
         }
     }
 
     private void setupListeners() {
+        // Close Buttons
         binding.btnClose.setOnClickListener(v -> finish());
+        binding.btnHeaderClose.setOnClickListener(v -> finish());
 
-        // Header Menu / More Options
-        binding.btnMoreOptions.setOnClickListener(v ->
-                Toast.makeText(this, "Task options", Toast.LENGTH_SHORT).show()
-        );
-
-        // Edit Title Button
-        binding.btnEditTitle.setOnClickListener(v -> {
-            binding.edtTaskName.requestFocus();
-            binding.edtTaskName.selectAll();
-        });
-
-        // Share Button
-        binding.btnShare.setOnClickListener(v -> {
-            String title = binding.edtTaskName.getText().toString().trim();
-            String desc = binding.edtDescription.getText().toString().trim();
-            android.content.Intent shareIntent = new android.content.Intent(android.content.Intent.ACTION_SEND);
-            shareIntent.setType("text/plain");
-            shareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, title);
-            shareIntent.putExtra(android.content.Intent.EXTRA_TEXT, title + "\n\n" + desc);
-            startActivity(android.content.Intent.createChooser(shareIntent, "Share Task"));
-        });
-
-        // Completion Checkbox
-        binding.btnRadioCompleted.setOnClickListener(v -> {
-            completed = !completed;
-            updateCompletionUI();
-            syncCompletionToFirebase(completed);
-        });
-
-        // Copy Description Button
-        binding.btnCopyDesc.setOnClickListener(v -> {
-            String desc = binding.edtDescription.getText().toString().trim();
-            ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-            ClipData clip = ClipData.newPlainText("Task Description", desc);
-            clipboard.setPrimaryClip(clip);
-            Toast.makeText(this, "Description copied to clipboard", Toast.LENGTH_SHORT).show();
-        });
-
-        // Priority Picker
-        binding.btnCategory.setOnClickListener(v -> {
-            DialogAddPriority prioritySheet = new DialogAddPriority();
-            prioritySheet.setOnPrioritySelectedListener(selectedPriorityVal -> {
-                String prioText;
-                if (selectedPriorityVal == 1) prioText = "High";
-                else if (selectedPriorityVal == 3) prioText = "Low";
-                else prioText = "Medium";
-                updatePriorityUI(prioText);
+        getOnBackPressedDispatcher().addCallback(this, new androidx.activity.OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
                 updateTaskInFirebase(false);
-            });
-            prioritySheet.show(getSupportFragmentManager(), "DialogAddPriority");
+                finish();
+            }
         });
 
-        // Category Picker
-        binding.layoutCategoryChip.setOnClickListener(v -> {
-            ItemAdd_Category sheet = new ItemAdd_Category();
-            sheet.show(getSupportFragmentManager(), "CategoryBottomSheet");
+        // Clear Task Title
+        binding.btnClearTitle.setOnClickListener(v -> {
+            binding.edtTaskName.setText("");
+            binding.edtTaskName.requestFocus();
         });
 
-        getSupportFragmentManager().setFragmentResultListener("category_selected", this, (requestKey, bundle) -> {
-            String categoryName = bundle.getString("selectedCategory");
-            String color = bundle.getString("selectedCategoryColor");
-            int icon = bundle.getInt("selectedCategoryIcon", 0);
+        // Top Save & Bottom Save
+        binding.btnTopSave.setOnClickListener(v -> updateTaskInFirebase(true));
+        binding.btnEditTask.setOnClickListener(v -> updateTaskInFirebase(true));
 
-            if (categoryName != null && !categoryName.isEmpty()) {
-                selectedCategory = categoryName;
-                binding.txtCategory.setText(selectedCategory);
-            }
-            if (color != null && !color.isEmpty()) {
-                categoryColor = color;
-                try {
-                    int c = Color.parseColor(categoryColor);
-                    binding.dotCategory.setTextColor(c);
-                    binding.txtCategory.setTextColor(c);
-                } catch (Exception ignored) {}
-            }
-            if (icon != 0) {
-                categoryIcon = String.valueOf(icon);
-            }
+        // Trash Delete at top and bottom
+        binding.btnHeaderDelete.setOnClickListener(v -> deleteTask());
+        binding.btnDeleteTask.setOnClickListener(v -> deleteTask());
+
+        // Category Cards Selection
+        binding.cardCategoryWork.setOnClickListener(v -> {
+            updateCategoryUI("Work");
             updateTaskInFirebase(false);
         });
 
-        // Date Picker
+        binding.cardCategoryPersonal.setOnClickListener(v -> {
+            updateCategoryUI("Personal");
+            updateTaskInFirebase(false);
+        });
+
+        binding.cardCategoryDesign.setOnClickListener(v -> {
+            updateCategoryUI("Design");
+            updateTaskInFirebase(false);
+        });
+
+        binding.cardCategoryHealth.setOnClickListener(v -> {
+            updateCategoryUI("Health");
+            updateTaskInFirebase(false);
+        });
+
+        // Priority Chips Selection
+        binding.chipPriorityLow.setOnClickListener(v -> {
+            updatePriorityUI("Low");
+            updateTaskInFirebase(false);
+        });
+
+        binding.chipPriorityMedium.setOnClickListener(v -> {
+            updatePriorityUI("Medium");
+            updateTaskInFirebase(false);
+        });
+
+        binding.chipPriorityHigh.setOnClickListener(v -> {
+            updatePriorityUI("High");
+            updateTaskInFirebase(false);
+        });
+
+        // Schedule: Due Date Picker
         binding.cardDueDate.setOnClickListener(v -> openCalendarPicker());
 
-        // Time Picker
+        // Schedule: Target Time Picker
         binding.cardTargetTime.setOnClickListener(v -> openTimePicker());
 
-        // Subtasks checkboxes
-        binding.chkSubtask1.setOnClickListener(v -> toggleSubtask(0));
-        binding.layoutSubtask1.setOnClickListener(v -> toggleSubtask(0));
+        // Pulse Reminder Switch
+        binding.switchReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            binding.txtReminderTitle.setText(isChecked ? "Pulse Reminder: Enabled" : "Pulse Reminder: Disabled");
+        });
 
-        binding.chkSubtask2.setOnClickListener(v -> toggleSubtask(1));
-        binding.layoutSubtask2.setOnClickListener(v -> toggleSubtask(1));
+        // Alert Offset Pills
+        binding.pillOffset15m.setOnClickListener(v -> updateAlertOffsetUI(15));
+        binding.pillOffset30m.setOnClickListener(v -> updateAlertOffsetUI(30));
+        binding.pillOffset1h.setOnClickListener(v -> updateAlertOffsetUI(60));
 
-        binding.chkSubtask3.setOnClickListener(v -> toggleSubtask(2));
-        binding.layoutSubtask3.setOnClickListener(v -> toggleSubtask(2));
-
-        binding.chkSubtask4.setOnClickListener(v -> toggleSubtask(3));
-        binding.layoutSubtask4.setOnClickListener(v -> toggleSubtask(3));
-
-        // Add Subtask
-        binding.btnAddSubTask.setOnClickListener(v -> showAddSubtaskDialog());
-
-        // Add Team Member
-        binding.btnAddMember.setOnClickListener(v ->
-                Toast.makeText(this, "Syncing team members...", Toast.LENGTH_SHORT).show()
+        // Add Collaborator
+        binding.btnAddCollaborator.setOnClickListener(v ->
+                Toast.makeText(this, "Collaborator synced", Toast.LENGTH_SHORT).show()
         );
 
-        // Delete Task
-        binding.btnDeleteTask.setOnClickListener(v -> deleteTask());
-
-        // Primary Action: Start Focus Session / Save Task
-        binding.btnEditTask.setOnClickListener(v -> {
-            updateTaskInFirebase(true);
+        // Header Menu Options
+        binding.btnMoreOptions.setOnClickListener(v -> {
+            PopupMenu popup = new PopupMenu(this, v);
+            popup.getMenu().add(0, 1, 0, "Delete Task");
+            popup.getMenu().add(0, 2, 1, "Clear Fields");
+            popup.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == 1) {
+                    deleteTask();
+                    return true;
+                } else if (item.getItemId() == 2) {
+                    binding.edtTaskName.setText("");
+                    binding.edtDescription.setText("");
+                    return true;
+                }
+                return false;
+            });
+            popup.show();
         });
-    }
-
-    private void toggleSubtask(int index) {
-        subtaskDone[index] = !subtaskDone[index];
-        updateSubtasksState();
-    }
-
-    private void updateSubtasksState() {
-        int completedCount = 0;
-        TextView[] texts = new TextView[]{binding.txtSubtask1, binding.txtSubtask2, binding.txtSubtask3, binding.txtSubtask4};
-        FrameLayout[] checks = new FrameLayout[]{binding.chkSubtask1, binding.chkSubtask2, binding.chkSubtask3, binding.chkSubtask4};
-        ImageView[] checkImgs = new ImageView[]{binding.imgSubtask1, binding.imgSubtask2, binding.imgSubtask3, binding.imgSubtask4};
-
-        for (int i = 0; i < 4; i++) {
-            if (subtaskDone[i]) {
-                completedCount++;
-                checks[i].setBackgroundResource(R.drawable.bg_timeline_checkbox_checked);
-                checkImgs[i].setColorFilter(Color.WHITE);
-                texts[i].setTextColor(Color.parseColor("#71717A"));
-                texts[i].setPaintFlags(texts[i].getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-            } else {
-                checks[i].setBackgroundResource(R.drawable.bg_timeline_checkbox);
-                checkImgs[i].setColorFilter(Color.parseColor("#4B4D5E"));
-                texts[i].setTextColor(Color.WHITE);
-                texts[i].setPaintFlags(texts[i].getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
-            }
-        }
-
-        binding.txtSubtasksCount.setText(completedCount + " of 4 Completed");
-        binding.progressBarSubtasks.setProgress((completedCount * 100) / 4);
-    }
-
-    private void showAddSubtaskDialog() {
-        EditText input = new EditText(this);
-        input.setHint("Enter subtask description...");
-        input.setTextColor(Color.WHITE);
-        input.setHintTextColor(Color.GRAY);
-        int pad = (int) (16 * getResources().getDisplayMetrics().density);
-        input.setPadding(pad, pad, pad, pad);
-
-        new AlertDialog.Builder(this)
-                .setTitle("Add Subtask")
-                .setView(input)
-                .setPositiveButton("Add", (dialog, which) -> {
-                    String sub = input.getText().toString().trim();
-                    if (!sub.isEmpty()) {
-                        binding.txtSubtask4.setText(sub);
-                        subtaskDone[3] = false;
-                        updateSubtasksState();
-                        Toast.makeText(this, "Subtask added", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
-                .show();
     }
 
     private void openCalendarPicker() {
         Calendar calendar = Calendar.getInstance();
         DatePickerDialog datePickerDialog = new DatePickerDialog(this, (datePicker, year, month, day) -> {
-            selectedYear = year;
-            selectedMonth = month;
-            selectedDay = day;
-
             Calendar pickedCal = Calendar.getInstance();
             pickedCal.set(year, month, day);
 
             selectedDate = String.format(Locale.getDefault(), "%02d/%02d/%04d", day, month + 1, year);
-            binding.txtDueDate.setText(formatDisplayDate(selectedDate));
+            setupDateUI(selectedDate);
             updateTaskInFirebase(false);
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
         datePickerDialog.show();
@@ -370,15 +378,12 @@ public class EditTaskActivity extends BaseActivity {
     private void openTimePicker() {
         Calendar calendar = Calendar.getInstance();
         TimePickerDialog timePickerDialog = new TimePickerDialog(this, (timePicker, hour, minute) -> {
-            selectedHour = hour;
-            selectedMinute = minute;
-
             String amPm = hour >= 12 ? "PM" : "AM";
             int hourIn12 = hour % 12;
             if (hourIn12 == 0) hourIn12 = 12;
 
             selectedTime = String.format(Locale.getDefault(), "%02d:%02d %s", hourIn12, minute, amPm);
-            binding.txtTaskTime.setText(selectedTime + " (90 mins)");
+            binding.txtTaskTime.setText(selectedTime);
             updateTaskInFirebase(false);
         }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), false);
         timePickerDialog.show();
@@ -389,30 +394,26 @@ public class EditTaskActivity extends BaseActivity {
             SimpleDateFormat parseFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
             Date d = parseFormat.parse(dateStr);
             if (d != null) {
-                return new SimpleDateFormat("EEE, MMM d, yyyy", Locale.ENGLISH).format(d);
+                Calendar today = Calendar.getInstance();
+                Calendar target = Calendar.getInstance();
+                target.setTime(d);
+
+                if (today.get(Calendar.YEAR) == target.get(Calendar.YEAR) &&
+                        today.get(Calendar.DAY_OF_YEAR) == target.get(Calendar.DAY_OF_YEAR)) {
+                    return "Today, " + new SimpleDateFormat("MMM d", Locale.ENGLISH).format(d);
+                }
+                return new SimpleDateFormat("EEE, MMM d", Locale.ENGLISH).format(d);
             }
         } catch (Exception ignored) {}
         return dateStr;
     }
 
     private String formatDisplayTime(String timeStr) {
-        if (!timeStr.contains("mins") && !timeStr.contains("–")) {
-            return timeStr + " (90 mins)";
+        if (timeStr == null) return "10:00 AM";
+        if (timeStr.contains("(") || timeStr.contains("•")) {
+            return timeStr.split("[•(]")[0].trim();
         }
         return timeStr;
-    }
-
-    private void syncCompletionToFirebase(boolean isCompleted) {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null && taskId != null && !taskId.trim().isEmpty()) {
-            FirebaseDatabase.getInstance()
-                    .getReference("Users")
-                    .child(user.getUid())
-                    .child("Tasks")
-                    .child(taskId)
-                    .child("completed")
-                    .setValue(isCompleted);
-        }
     }
 
     private void updateTaskInFirebase(boolean finishAfterSave) {
@@ -420,17 +421,23 @@ public class EditTaskActivity extends BaseActivity {
         String description = binding.edtDescription.getText().toString().trim();
 
         if (taskName.isEmpty()) {
-            binding.edtTaskName.setError("Task name cannot be empty");
+            if (finishAfterSave) {
+                binding.edtTaskName.setError("Task title cannot be empty");
+            }
             return;
         }
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
-            Toast.makeText(this, "Please log in first", Toast.LENGTH_SHORT).show();
+            if (finishAfterSave) {
+                Toast.makeText(this, "Please log in first", Toast.LENGTH_SHORT).show();
+            }
             return;
         }
         if (taskId == null || taskId.trim().isEmpty()) {
-            Toast.makeText(this, "Task ID not found", Toast.LENGTH_SHORT).show();
+            if (finishAfterSave) {
+                Toast.makeText(this, "Task ID not found", Toast.LENGTH_SHORT).show();
+            }
             return;
         }
 
@@ -462,11 +469,13 @@ public class EditTaskActivity extends BaseActivity {
 
         taskRef.updateChildren(updates).addOnSuccessListener(unused -> {
             if (finishAfterSave) {
-                Toast.makeText(this, "Focus session starting...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Task updated successfully", Toast.LENGTH_SHORT).show();
                 finish();
             }
         }).addOnFailureListener(e -> {
-            Toast.makeText(this, "Update failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            if (finishAfterSave) {
+                Toast.makeText(this, "Update failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            }
         });
     }
 

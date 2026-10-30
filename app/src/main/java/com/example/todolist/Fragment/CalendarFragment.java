@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.todolist.R;
 import com.example.todolist.activity.EditTaskActivity;
+import com.example.todolist.activity.TaskDetail;
 import com.example.todolist.adapter.CalendarTaskAdapter;
 import com.example.todolist.databinding.FragmentCalendarBinding;
 import com.example.todolist.model.TaskModel;
@@ -340,7 +341,7 @@ public class CalendarFragment extends Fragment {
     }
 
     private void openEditTask(TaskModel taskModel) {
-        Intent intent = new Intent(requireContext(), EditTaskActivity.class);
+        Intent intent = new Intent(requireContext(), TaskDetail.class);
         intent.putExtra("taskId", taskModel.getTaskId());
         intent.putExtra("taskName", taskModel.getTaskName());
         intent.putExtra("description", taskModel.getDescription());
