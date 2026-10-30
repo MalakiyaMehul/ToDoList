@@ -33,12 +33,14 @@ public class DonutChartView extends View {
     }
 
     public static int getCategoryColor(String categoryName) {
-        if (categoryName == null) return Color.parseColor("#FF9680");
+        if (categoryName == null) return Color.parseColor("#8B5CF6");
         switch (categoryName.trim()) {
+            case "Work": return Color.parseColor("#8B5CF6");
+            case "Design": return Color.parseColor("#C084FC");
+            case "Personal": return Color.parseColor("#06B6D4");
+            case "Health": return Color.parseColor("#10B981");
             case "Grocery": return Color.parseColor("#CCFF80");
-            case "Work": return Color.parseColor("#FF9680");
             case "Sport": return Color.parseColor("#80FFFF");
-            case "Design": return Color.parseColor("#80FFD9");
             case "University": return Color.parseColor("#809CFF");
             case "Social": return Color.parseColor("#FF80EB");
             case "Music": return Color.parseColor("#FC80FF");
@@ -46,17 +48,13 @@ public class DonutChartView extends View {
             case "Movie": return Color.parseColor("#80D1FF");
             case "Home": return Color.parseColor("#FFCC80");
             default:
-                try {
-                    return Color.parseColor("#FF9680");
-                } catch (Exception e) {
-                    return Color.GRAY;
-                }
+                return Color.parseColor("#8B5CF6");
         }
     }
 
     private final List<Slice> slices = new ArrayList<>();
-    private String centerCount = "24";
-    private String centerLabel = "Tasks";
+    private String centerCount = "48";
+    private String centerLabel = "ALL TASKS";
 
     private Paint arcPaint;
     private Paint countPaint;
@@ -80,7 +78,7 @@ public class DonutChartView extends View {
     }
 
     private void init() {
-        strokeWidthPx = 18f * getResources().getDisplayMetrics().density;
+        strokeWidthPx = 20f * getResources().getDisplayMetrics().density;
 
         arcPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         arcPaint.setStyle(Paint.Style.STROKE);
@@ -89,30 +87,30 @@ public class DonutChartView extends View {
 
         countPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         countPaint.setColor(Color.WHITE);
-        countPaint.setTextSize(20f * getResources().getDisplayMetrics().scaledDensity);
+        countPaint.setTextSize(24f * getResources().getDisplayMetrics().scaledDensity);
         countPaint.setTextAlign(Paint.Align.CENTER);
         countPaint.setFakeBoldText(true);
 
         labelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        labelPaint.setColor(Color.parseColor("#9E9E9E"));
-        labelPaint.setTextSize(11f * getResources().getDisplayMetrics().scaledDensity);
+        labelPaint.setColor(Color.parseColor("#94A3B8"));
+        labelPaint.setTextSize(10f * getResources().getDisplayMetrics().scaledDensity);
         labelPaint.setTextAlign(Paint.Align.CENTER);
+        labelPaint.setFakeBoldText(true);
+        labelPaint.setLetterSpacing(0.08f);
 
         arcBounds = new RectF();
 
-        // Default sample slices matching the app's categories
         loadDefaultSample();
     }
 
     public void loadDefaultSample() {
         slices.clear();
-        slices.add(new Slice("Work", Color.parseColor("#FF9680"), 7));
-        slices.add(new Slice("Grocery", Color.parseColor("#CCFF80"), 4));
-        slices.add(new Slice("Design", Color.parseColor("#80FFD9"), 5));
-        slices.add(new Slice("University", Color.parseColor("#809CFF"), 5));
-        slices.add(new Slice("Sport", Color.parseColor("#80FFFF"), 3));
-        centerCount = "24";
-        centerLabel = "Tasks";
+        slices.add(new Slice("Work", Color.parseColor("#8B5CF6"), 22));
+        slices.add(new Slice("Design", Color.parseColor("#C084FC"), 12));
+        slices.add(new Slice("Personal", Color.parseColor("#06B6D4"), 9));
+        slices.add(new Slice("Health", Color.parseColor("#10B981"), 5));
+        centerCount = "48";
+        centerLabel = "ALL TASKS";
         invalidate();
     }
 
@@ -125,7 +123,7 @@ public class DonutChartView extends View {
             loadDefaultSample();
             return;
         }
-        centerLabel = "Tasks";
+        centerLabel = "ALL TASKS";
         invalidate();
     }
 

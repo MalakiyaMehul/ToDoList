@@ -58,7 +58,9 @@ public class ChangeUserNameDialog extends DialogFragment {
 
                 binding.btnEditTask.setEnabled(false);
 
-                userRef.child("userName").setValue(newName)
+                userRef.child("userName").setValue(newName);
+                userRef.child("username").setValue(newName);
+                userRef.child("name").setValue(newName)
                         .addOnSuccessListener(unused -> {
                             if (!isAdded()) return;
                             

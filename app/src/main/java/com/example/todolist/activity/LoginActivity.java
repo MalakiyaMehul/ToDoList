@@ -68,10 +68,6 @@ public class LoginActivity extends BaseActivity {
             );
         });
 
-        binding.txtForgotPassword.setOnClickListener(v -> {
-            Toast.makeText(this, "Password recovery feature", Toast.LENGTH_SHORT).show();
-        });
-
 
 
         googleSignInLauncher = registerForActivityResult(
@@ -142,7 +138,7 @@ public class LoginActivity extends BaseActivity {
                                 Toast.LENGTH_SHORT).show();
 
                         Intent intent = new Intent(
-                                LoginActivity.this, MainActivity.class);
+                                LoginActivity.this, HomeActivity.class);
 
                         startActivity(intent);
                         finish();

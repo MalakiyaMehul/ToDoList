@@ -21,7 +21,7 @@ import com.example.todolist.activity.CreateTaskActivity;
 import com.example.todolist.databinding.ActivityHomeBinding;
 import com.google.android.material.tabs.TabLayout;
 
-public class HomeActivity extends AppCompatActivity {
+public class HomeActivity extends BaseActivity {
 
     private ActivityHomeBinding binding;
 
