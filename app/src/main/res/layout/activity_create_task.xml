@@ -86,8 +86,10 @@
             android:clipToPadding="false"
             android:fillViewport="true"
             android:overScrollMode="never"
+            
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toTopOf="parent">
+
 
             <LinearLayout
                 android:layout_width="match_parent"
