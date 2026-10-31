@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.animation.DecelerateInterpolator;
 
+import com.example.todolist.SupabaseAuth;
 import com.example.todolist.activity.home.HomeActivity;
 import com.example.todolist.databinding.ActivitySplashBinding;
 import com.google.firebase.auth.FirebaseAuth;
@@ -31,14 +32,23 @@ public class SplashActivity extends BaseActivity {
         progressAnimator.start();
 
         // If user already logged in with Firebase, automatically transition into Home
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser != null) {
+
+        if (SupabaseAuth.isLoggedIn(this)) {
+
             autoNavRunnable = () -> {
+
                 if (!isFinishing()) {
-                    startActivity(new Intent(SplashActivity.this, HomeActivity.class));
+
+                    Intent intent = new Intent(
+                            SplashActivity.this,
+                            HomeActivity.class
+                    );
+
+                    startActivity(intent);
                     finish();
                 }
             };
+
             navHandler.postDelayed(autoNavRunnable, 1600);
         }
 

@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
+import com.example.todolist.SupabaseAuth;
 import com.example.todolist.databinding.ChangePasswordDialogBoxBinding;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
@@ -46,15 +47,17 @@ public class ChangeUserPassword extends DialogFragment {
 
         binding.btnCancel.setOnClickListener(v -> dismiss());
 
-        binding.btnEditTask.setOnClickListener(v ->
-                changePassword());
+        binding.btnEditTask.setOnClickListener(v -> changePassword());
     }
+
 
     private void changePassword() {
 
-        String currentPassword = binding.edtOldPassword.getText().toString().trim();
+        String currentPassword =
+                binding.edtOldPassword.getText().toString().trim();
 
-        String newPassword = binding.edtNewPassword.getText().toString().trim();
+        String newPassword =
+                binding.edtNewPassword.getText().toString().trim();
 
         if (TextUtils.isEmpty(currentPassword)) {
             binding.edtOldPassword.setError("Enter current password");
@@ -67,68 +70,82 @@ public class ChangeUserPassword extends DialogFragment {
         }
 
         if (newPassword.length() < 6) {
-            binding.edtNewPassword.setError("Password must be at least 6 characters");
+            binding.edtNewPassword.setError(
+                    "Password must be at least 6 characters"
+            );
             return;
         }
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        String email = SupabaseAuth.getEmail(requireContext());
 
-        if (user == null) {
-            showMessage("Please log in again");
+        String accessToken = SupabaseAuth.getAccessToken(requireContext());
+
+        if (email == null || accessToken == null) {
+
+            showMessage("Please login again");
             return;
         }
 
-        if (user.getEmail() == null) {
-            showMessage("Email account not available");
-            return;
-        }
         binding.btnEditTask.setEnabled(false);
-        com.google.firebase.auth.AuthCredential credential =
-                EmailAuthProvider.getCredential(
-                        user.getEmail(), currentPassword);
-        user.reauthenticate(credential)
-                .addOnSuccessListener(unused -> {
-                    if (binding == null || !isAdded()) {
-                        return;
-                    }
-                    user.updatePassword(newPassword)
-                            .addOnSuccessListener(result -> {
-                                if (!isAdded()) {
-                                    return;
-                                }
-                                com.google.firebase.database.DatabaseReference userRef =
-                                        com.google.firebase.database.FirebaseDatabase.getInstance()
-                                                .getReference("Users")
-                                                .child(user.getUid());
 
-                                java.util.HashMap<String, Object> updates = new java.util.HashMap<>();
-                                updates.put("password", newPassword);
-                                updates.put("Password", newPassword);
+        SupabaseAuth.signIn(email, currentPassword,
+                new SupabaseAuth.AuthCallback() {
 
-                                userRef.updateChildren(updates).addOnCompleteListener(dbTask -> {
-                                    if (!isAdded()) {
-                                        return;
+                    @Override
+                    public void onSuccess(com.google.gson.JsonObject response) {
+
+                        String verifiedToken = response.has("access_token")
+                                ? response.get("access_token").getAsString()
+                                : accessToken;
+
+                        SupabaseAuth.updatePassword(
+                                verifiedToken,
+                                newPassword,
+                                new SupabaseAuth.AuthCallback() {
+
+                                    @Override
+                                    public void onSuccess(
+                                            com.google.gson.JsonObject response
+                                    ) {
+
+                                        requireActivity().runOnUiThread(() -> {
+
+                                            binding.btnEditTask.setEnabled(true);
+
+                                            showMessage("Password updated successfully");
+
+                                            dismiss();
+                                        });
                                     }
-                                    showMessage("Password updated successfully");
-                                    dismiss();
+
+                                    @Override
+                                    public void onError(String error) {
+
+                                        requireActivity().runOnUiThread(() -> {
+
+                                            binding.btnEditTask.setEnabled(true);
+
+                                            showMessage(
+                                                    "Password update failed: " + error
+                                            );
+                                        });
+                                    }
                                 });
-                            })
-                            .addOnFailureListener(error -> {
-                                if (!isAdded() || binding == null) {
-                                    return;
-                                }
-                                binding.btnEditTask.setEnabled(true);
-                                showMessage("Failed to update password: " + error.getMessage());
-                            });
-                })
-                .addOnFailureListener(error -> {
-                    if (!isAdded() || binding == null) {
-                        return;
                     }
-                    binding.btnEditTask.setEnabled(true);
-                    showMessage("Current password does not match");
+
+                    @Override
+                    public void onError(String error) {
+
+                        requireActivity().runOnUiThread(() -> {
+
+                            binding.btnEditTask.setEnabled(true);
+
+                            showMessage("Current password does not match");
+                        });
+                    }
                 });
     }
+
 
     private void showMessage(String message) {
 

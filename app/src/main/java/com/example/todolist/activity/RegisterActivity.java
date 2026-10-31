@@ -6,27 +6,21 @@ import android.widget.Toast;
 
 import com.example.todolist.InputField;
 import com.example.todolist.R;
+import com.example.todolist.SupabaseAuth;
+import com.example.todolist.activity.home.HomeActivity;
 import com.example.todolist.databinding.ActivityRegisterBinding;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthUserCollisionException;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.HashMap;
 
 public class RegisterActivity extends BaseActivity {
 
     private ActivityRegisterBinding binding;
-    private FirebaseAuth auth;
-    private DatabaseReference database;
+    private boolean isTermsAgreed = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityRegisterBinding.inflate(getLayoutInflater());
-        auth = FirebaseAuth.getInstance();
-        database = FirebaseDatabase.getInstance().getReference("Users");
         setContentView(binding.getRoot());
 
         InputField usernameField = binding.username;
@@ -62,9 +56,7 @@ public class RegisterActivity extends BaseActivity {
         final boolean[] isTermsAgreed = {true};
         binding.checkTerms.setOnClickListener(v -> {
             isTermsAgreed[0] = !isTermsAgreed[0];
-            binding.checkTerms.setBackgroundResource(
-                    isTermsAgreed[0] ? R.drawable.bg_checkbox_checked : R.drawable.bg_card_input
-            );
+            binding.checkTerms.setBackgroundResource(isTermsAgreed[0] ? R.drawable.bg_checkbox_checked : R.drawable.bg_card_input);
         });
 
         binding.txtTermsLink.setOnClickListener(v -> {
@@ -76,17 +68,21 @@ public class RegisterActivity extends BaseActivity {
         });
 
 
-
         binding.txtLogin.setOnClickListener(v -> {
             Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
             startActivity(intent);
             finish();
         });
 
+
         binding.btnRegister.setOnClickListener(v -> {
+
             String username = binding.username.getText().toString().trim();
+
             String emailInput = binding.edtEmailAddress.getText().toString().trim();
+
             String password = binding.passwordField.getText().toString().trim();
+
             String confirmPassword = binding.edtConfirmPassword.getText().toString().trim();
 
             if (username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
@@ -95,7 +91,7 @@ public class RegisterActivity extends BaseActivity {
             }
 
             if (!isTermsAgreed[0]) {
-                Toast.makeText(this, "Please agree to the Terms of Service & Privacy Policy", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Please agree to Terms", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -109,9 +105,8 @@ public class RegisterActivity extends BaseActivity {
                 return;
             }
 
-            binding.btnRegister.setEnabled(false);
-
             String email;
+
             if (!emailInput.isEmpty() && emailInput.contains("@")) {
                 email = emailInput;
             } else if (username.contains("@")) {
@@ -120,56 +115,38 @@ public class RegisterActivity extends BaseActivity {
                 email = username.replaceAll("\\s+", "").toLowerCase() + "@todolist.com";
             }
 
-            auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    FirebaseUser user = auth.getCurrentUser();
-                    if (user != null) {
-                        saveUserDataAndNavigate(user.getUid(), username, email, password);
-                    } else {
+            binding.btnRegister.setEnabled(false);
+
+            SupabaseAuth.signUp(email, password, username, new SupabaseAuth.AuthCallback() {
+
+                @Override
+                public void onSuccess(com.google.gson.JsonObject response) {
+                    runOnUiThread(() -> {
                         binding.btnRegister.setEnabled(true);
-                        Toast.makeText(this, "Registration failed: User is null", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    if (task.getException() instanceof FirebaseAuthUserCollisionException) {
-                        // User already exists in Auth, sign in to save data and continue
-                        auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(loginTask -> {
-                            if (loginTask.isSuccessful() && auth.getCurrentUser() != null) {
-                                saveUserDataAndNavigate(auth.getCurrentUser().getUid(), username, email, password);
-                            } else {
-                                binding.btnRegister.setEnabled(true);
-                                Toast.makeText(this, "Account already exists with this email/username. Please log in.", Toast.LENGTH_LONG).show();
-                            }
-                        });
-                    } else {
+                        if (response.has("access_token")) {
+                            SupabaseAuth.saveSession(RegisterActivity.this, response, username);
+                            Toast.makeText(RegisterActivity.this, "Registration Successful", Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+                            finish();
+                        } else {
+                            Toast.makeText(RegisterActivity.this, "Registration successful. Please verify email and login.", Toast.LENGTH_LONG).show();
+                            startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+                            finish();
+                        }
+                    });
+                }
+
+                @Override
+                public void onError(String error) {
+
+                    runOnUiThread(() -> {
+
                         binding.btnRegister.setEnabled(true);
-                        String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
-                        Toast.makeText(this, "Registration Error: " + errorMsg, Toast.LENGTH_LONG).show();
-                    }
+
+                        Toast.makeText(RegisterActivity.this, "Registration Error: " + error, Toast.LENGTH_LONG).show();
+                    });
                 }
             });
-        });
-    }
-
-    private void saveUserDataAndNavigate(String uid, String username, String email, String password) {
-        HashMap<String, Object> userData = new HashMap<>();
-        userData.put("uid", uid);
-        userData.put("username", username);
-        userData.put("userName", username);
-        userData.put("email", email);
-        userData.put("password", password);
-
-        database.child(uid).setValue(userData).addOnSuccessListener(unused -> {
-            getSharedPreferences("MyPrefs", MODE_PRIVATE)
-                    .edit()
-                    .putBoolean("hasRegistered", true)
-                    .apply();
-            Toast.makeText(this, "Registration Successful", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(this, LoginActivity.class);
-            startActivity(intent);
-            finish();
-        }).addOnFailureListener(e -> {
-            binding.btnRegister.setEnabled(true);
-            Toast.makeText(this, "Database Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
         });
     }
 }

@@ -16,6 +16,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.todolist.InputField;
 import com.example.todolist.MainActivity;
 import com.example.todolist.R;
+import com.example.todolist.SupabaseAuth;
 import com.example.todolist.activity.home.HomeActivity;
 import com.example.todolist.databinding.ActivityLoginBinding;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -30,9 +31,6 @@ import com.google.firebase.auth.GoogleAuthProvider;
 public class LoginActivity extends BaseActivity {
 
     private ActivityLoginBinding binding;
-    private FirebaseAuth auth;
-    private GoogleSignInClient googleSignInClient;
-    private ActivityResultLauncher<Intent> googleSignInLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,14 +38,14 @@ public class LoginActivity extends BaseActivity {
         EdgeToEdge.enable(this);
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        auth = FirebaseAuth.getInstance();
+        //auth = FirebaseAuth.getInstance();
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(
                 GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
                 .requestIdToken(getString(R.string.app_name))
                 .build();
 
-        googleSignInClient = GoogleSignIn.getClient(this, gso);
+        //   googleSignInClient = GoogleSignIn.getClient(this, gso);
 
         InputField usernameField = binding.txtUserLogin;
         InputField passwordField = binding.edtPassword;
@@ -70,7 +68,7 @@ public class LoginActivity extends BaseActivity {
 
 
 
-        googleSignInLauncher = registerForActivityResult(
+      /*  googleSignInLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == RESULT_OK
@@ -96,37 +94,92 @@ public class LoginActivity extends BaseActivity {
             Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
             startActivity(intent);
             finish();
-        });
+        });*/
+
         binding.btnLogin.setOnClickListener(v -> {
+
             String username = binding.txtUserLogin.getText().toString().trim();
+
             String password = binding.edtPassword.getText().toString().trim();
-            if(username.isEmpty() || password.isEmpty())
-            {
-                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+
+            if (username.isEmpty() || password.isEmpty()) {
+
+                Toast.makeText(
+                        this,
+                        "Please fill all fields",
+                        Toast.LENGTH_SHORT
+                ).show();
+
                 return;
             }
-            String email = username.contains("@") ? username : (username.replaceAll("\\s+", "").toLowerCase() + "@todolist.com");
+
+            String email = username.contains("@")
+                    ? username
+                    : username.replaceAll("\\s+", "").toLowerCase()
+                      + "@todolist.com";
+
             binding.btnLogin.setEnabled(false);
-            auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
-                binding.btnLogin.setEnabled(true);
-                if (task.isSuccessful()) {
-                    Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-                    startActivity(intent);
-                    finish();
-                } else {
-                    String errorMsg = task.getException() != null ? task.getException().getMessage() : "Invalid email or password";
-                    Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show();
-                }
-            });
+
+            SupabaseAuth.signIn(email, password,
+                    new SupabaseAuth.AuthCallback() {
+
+                        @Override
+                        public void onSuccess(com.google.gson.JsonObject response) {
+
+                            String savedUsername = username.contains("@")
+                                    ? username.substring(0, username.indexOf("@"))
+                                    : username;
+
+                            SupabaseAuth.saveSession(
+                                    LoginActivity.this,
+                                    response,
+                                    savedUsername
+                            );
+
+                            runOnUiThread(() -> {
+
+                                binding.btnLogin.setEnabled(true);
+
+                                Toast.makeText(
+                                        LoginActivity.this,
+                                        "Login successful",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+
+                                Intent intent = new Intent(
+                                        LoginActivity.this,
+                                        HomeActivity.class
+                                );
+
+                                startActivity(intent);
+                                finish();
+                            });
+                        }
+
+                        @Override
+                        public void onError(String error) {
+
+                            runOnUiThread(() -> {
+
+                                binding.btnLogin.setEnabled(true);
+
+                                Toast.makeText(
+                                        LoginActivity.this,
+                                        "Login failed: " + error,
+                                        Toast.LENGTH_LONG
+                                ).show();
+                            });
+                        }
+                    });
         });
-        binding.GoogleWithLogin.setOnClickListener(v -> {
+
+       /* binding.GoogleWithLogin.setOnClickListener(v -> {
             googleSignInLauncher.launch(
                     googleSignInClient.getSignInIntent());
         });
-    }
+    }*/
 
-    private void firebaseAuthWithGoogle(String idToken) {
+    /*private void firebaseAuthWithGoogle(String idToken) {
         AuthCredential credential =
                 GoogleAuthProvider.getCredential(idToken, null);
 
@@ -148,6 +201,6 @@ public class LoginActivity extends BaseActivity {
                                 "Google Login failed",
                                 Toast.LENGTH_LONG).show();
                     }
-                });
+                });*/
     }
 }
