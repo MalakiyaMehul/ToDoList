@@ -1,8 +1,10 @@
 package com.example.todolist.Fragment;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -29,7 +31,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -52,7 +58,8 @@ public class FocusFragment extends Fragment {
     private FragmentFocusBinding binding;
     private DatabaseReference tasksRef;
     private ValueEventListener tasksListener;
-    private String selectedTimeframe = "Week";
+    private String selectedTimeframe = "Month"; // Default to Month as usually preferred, or Week
+    private DataSnapshot currentSnapshot;
 
     public FocusFragment() {
     }
@@ -104,6 +111,10 @@ public class FocusFragment extends Fragment {
 
         binding.tabAllTime.setBackgroundResource(isAll ? selectedBg : unselectedBg);
         binding.tabAllTime.setTextColor(isAll ? white : muted);
+        
+        if (currentSnapshot != null) {
+            processTasksAnalytics();
+        }
     }
 
     private void setupActions() {
@@ -127,15 +138,15 @@ public class FocusFragment extends Fragment {
     private void loadSavedAvatar() {
         if (binding == null || !isAdded()) return;
         String savedAvatarUri = requireContext()
-                .getSharedPreferences("UserProfile", android.content.Context.MODE_PRIVATE)
+                .getSharedPreferences("UserProfile", Context.MODE_PRIVATE)
                 .getString("avatar_uri", null);
 
         if (savedAvatarUri != null && !savedAvatarUri.isEmpty()) {
             try {
-                java.io.File file = new java.io.File(savedAvatarUri);
+                File file = new File(savedAvatarUri);
                 if (file.exists()) {
                     binding.ivFocusAvatar.setImageURI(null);
-                    binding.ivFocusAvatar.setImageURI(android.net.Uri.fromFile(file));
+                    binding.ivFocusAvatar.setImageURI(Uri.fromFile(file));
                 }
             } catch (Exception ignored) {}
         }
@@ -233,82 +244,8 @@ public class FocusFragment extends Fragment {
         tasksListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (binding == null || !isAdded()) return;
-
-                if (!snapshot.exists() || snapshot.getChildrenCount() == 0) {
-                    displaySampleData();
-                    return;
-                }
-
-                int totalTasks = 0;
-                int completedTasks = 0;
-
-                // Category name -> CategoryStat
-                Map<String, CategoryStat> categoryMap = new LinkedHashMap<>();
-
-                for (DataSnapshot child : snapshot.getChildren()) {
-                    TaskModel task = child.getValue(TaskModel.class);
-                    if (task == null) continue;
-
-                    totalTasks++;
-                    if (task.isCompleted()) {
-                        completedTasks++;
-                    }
-
-                    String category = task.getCategory();
-                    if (category == null || category.trim().isEmpty()) {
-                        category = "Other";
-                    } else {
-                        category = category.trim();
-                    }
-
-                    int color;
-                    String colorHex = task.getCategoryColor();
-                    if (colorHex != null && !colorHex.trim().isEmpty()) {
-                        try {
-                            color = Color.parseColor(colorHex.trim());
-                        } catch (Exception e) {
-                            color = DonutChartView.getCategoryColor(category);
-                        }
-                    } else {
-                        color = DonutChartView.getCategoryColor(category);
-                    }
-
-                    if (categoryMap.containsKey(category)) {
-                        categoryMap.get(category).count++;
-                    } else {
-                        categoryMap.put(category, new CategoryStat(category, color, 1));
-                    }
-                }
-
-                int pendingTasks = totalTasks - completedTasks;
-                float completionPercent = totalTasks > 0 ? (completedTasks * 100f) / totalTasks : 0f;
-
-                // Update metric cards
-                binding.tvTotalTasks.setText(String.valueOf(totalTasks));
-                binding.tvPendingTasks.setText(String.valueOf(pendingTasks));
-
-                binding.tvCompletionPercent.setText(String.format(Locale.ENGLISH, "%.1f%%", completionPercent));
-                binding.progressBarCompletion.setProgress((int) completionPercent);
-
-                float delta = completionPercent - 80f;
-                binding.tvCompletionDelta.setText((delta >= 0 ? "+" : "") + String.format(Locale.ENGLISH, "%.1f%%", delta));
-
-                double focusHours = totalTasks * 0.75;
-                binding.tvFocusHours.setText(String.format(Locale.ENGLISH, "%.1f", focusHours));
-
-                binding.tvWeeklyCompletedCount.setText(completedTasks + " completed tasks this week");
-
-                // Update Donut Chart and legend with actual categories
-                List<DonutChartView.Slice> slices = new ArrayList<>();
-                List<CategoryStat> statList = new ArrayList<>(categoryMap.values());
-
-                for (CategoryStat stat : statList) {
-                    slices.add(new DonutChartView.Slice(stat.name, stat.color, stat.count));
-                }
-
-                binding.donutChart.setData(slices, totalTasks);
-                updateCategoryLegend(statList, totalTasks);
+                currentSnapshot = snapshot;
+                processTasksAnalytics();
             }
 
             @Override
@@ -318,6 +255,133 @@ public class FocusFragment extends Fragment {
         };
 
         tasksRef.addValueEventListener(tasksListener);
+    }
+
+    private Calendar parseDate(String dateStr) {
+        if (dateStr == null || dateStr.trim().isEmpty()) {
+            return null;
+        }
+        String[] formats = new String[]{"dd/MM/yyyy", "d/M/yyyy", "MMM dd, yyyy", "MMM d, yyyy", "yyyy-MM-dd"};
+        for (String format : formats) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.getDefault());
+                sdf.setLenient(false);
+                Date date = sdf.parse(dateStr.trim());
+                if (date != null) {
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(date);
+                    return cal;
+                }
+            } catch (Exception ignored) {}
+        }
+        return null;
+    }
+
+    private boolean isDateInTimeframe(String dateStr, String timeframe) {
+        if ("All".equals(timeframe)) return true;
+        if (dateStr == null || dateStr.trim().isEmpty()) return false;
+        
+        try {
+            Calendar taskCal = parseDate(dateStr);
+            if (taskCal == null) return false;
+            
+            Calendar now = Calendar.getInstance();
+            
+            if ("Month".equals(timeframe)) {
+                return taskCal.get(Calendar.YEAR) == now.get(Calendar.YEAR) &&
+                       taskCal.get(Calendar.MONTH) == now.get(Calendar.MONTH);
+            } else if ("Week".equals(timeframe)) {
+                // Assuming "Week" means same week of the same year
+                return taskCal.get(Calendar.YEAR) == now.get(Calendar.YEAR) &&
+                       taskCal.get(Calendar.WEEK_OF_YEAR) == now.get(Calendar.WEEK_OF_YEAR);
+            }
+        } catch (Exception e) {
+            // Ignore parsing errors and exclude task by default
+        }
+        return false; 
+    }
+
+    private void processTasksAnalytics() {
+        if (binding == null || !isAdded()) return;
+
+        if (currentSnapshot == null || !currentSnapshot.exists() || currentSnapshot.getChildrenCount() == 0) {
+            displaySampleData();
+            return;
+        }
+
+        int totalTasks = 0;
+        int completedTasks = 0;
+
+        // Category name -> CategoryStat
+        Map<String, CategoryStat> categoryMap = new LinkedHashMap<>();
+
+        for (DataSnapshot child : currentSnapshot.getChildren()) {
+            TaskModel task = child.getValue(TaskModel.class);
+            if (task == null) continue;
+
+            if (!isDateInTimeframe(task.getDate(), selectedTimeframe)) {
+                continue;
+            }
+
+            totalTasks++;
+            if (task.isCompleted()) {
+                completedTasks++;
+            }
+
+            String category = task.getCategory();
+            if (category == null || category.trim().isEmpty()) {
+                category = "Other";
+            } else {
+                category = category.trim();
+            }
+
+            int color;
+            String colorHex = task.getCategoryColor();
+            if (colorHex != null && !colorHex.trim().isEmpty()) {
+                try {
+                    color = Color.parseColor(colorHex.trim());
+                } catch (Exception e) {
+                    color = DonutChartView.getCategoryColor(category);
+                }
+            } else {
+                color = DonutChartView.getCategoryColor(category);
+            }
+
+            if (categoryMap.containsKey(category)) {
+                categoryMap.get(category).count++;
+            } else {
+                categoryMap.put(category, new CategoryStat(category, color, 1));
+            }
+        }
+
+        int pendingTasks = totalTasks - completedTasks;
+        float completionPercent = totalTasks > 0 ? (completedTasks * 100f) / totalTasks : 0f;
+
+        // Update metric cards
+        binding.tvTotalTasks.setText(String.valueOf(totalTasks));
+        binding.tvPendingTasks.setText(String.valueOf(pendingTasks));
+
+        binding.tvCompletionPercent.setText(String.format(Locale.ENGLISH, "%.1f%%", completionPercent));
+        binding.progressBarCompletion.setProgress((int) completionPercent);
+
+        float delta = completionPercent - 80f; // Target 80%? Based on original code
+        binding.tvCompletionDelta.setText((delta >= 0 ? "+" : "") + String.format(Locale.ENGLISH, "%.1f%%", delta));
+
+        double focusHours = totalTasks * 0.75;
+        binding.tvFocusHours.setText(String.format(Locale.ENGLISH, "%.1f", focusHours));
+
+        binding.tvWeeklyCompletedCount.setText(completedTasks + " completed tasks this " + selectedTimeframe.toLowerCase());
+
+        // Update Donut Chart and legend with actual categories
+        List<DonutChartView.Slice> slices = new ArrayList<>();
+        List<CategoryStat> statList = new ArrayList<>(categoryMap.values());
+
+        for (CategoryStat stat : statList) {
+            slices.add(new DonutChartView.Slice(stat.name, stat.color, stat.count));
+        }
+
+        binding.donutChart.setData(slices, totalTasks);
+        updateCategoryLegend(statList, totalTasks);
     }
 
     @Override

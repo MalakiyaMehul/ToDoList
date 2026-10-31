@@ -116,13 +116,10 @@ public class DonutChartView extends View {
 
     public void setData(List<Slice> newSlices, int totalCount) {
         slices.clear();
-        if (newSlices != null && !newSlices.isEmpty() && totalCount > 0) {
+        if (newSlices != null) {
             slices.addAll(newSlices);
-            centerCount = String.valueOf(totalCount);
-        } else {
-            loadDefaultSample();
-            return;
         }
+        centerCount = String.valueOf(totalCount);
         centerLabel = "ALL TASKS";
         invalidate();
     }
@@ -148,20 +145,22 @@ public class DonutChartView extends View {
             total += s.value;
         }
 
-        if (total <= 0f) {
-            total = 1f;
-        }
-
         float currentAngle = -90f;
         float gapAngle = slices.size() > 1 ? 3f : 0f;
 
-        for (Slice slice : slices) {
-            float sweep = (slice.value / total) * 360f;
-            float drawSweep = Math.max(sweep - gapAngle, 1f);
+        if (total <= 0f) {
+            // Draw empty state circle
+            arcPaint.setColor(Color.parseColor("#334155"));
+            canvas.drawArc(arcBounds, 0, 360, false, arcPaint);
+        } else {
+            for (Slice slice : slices) {
+                float sweep = (slice.value / total) * 360f;
+                float drawSweep = Math.max(sweep - gapAngle, 1f);
 
-            arcPaint.setColor(slice.color);
-            canvas.drawArc(arcBounds, currentAngle + (gapAngle / 2f), drawSweep, false, arcPaint);
-            currentAngle += sweep;
+                arcPaint.setColor(slice.color);
+                canvas.drawArc(arcBounds, currentAngle + (gapAngle / 2f), drawSweep, false, arcPaint);
+                currentAngle += sweep;
+            }
         }
 
         // Draw center count and label

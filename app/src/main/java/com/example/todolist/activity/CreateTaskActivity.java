@@ -3,8 +3,10 @@ package com.example.todolist.activity;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.res.ColorStateList;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,6 +35,8 @@ public class CreateTaskActivity extends BaseActivity {
     private String selectedPriority = "High";
     private String selectedDate = "";
     private String selectedTime = "";
+    private String selectedCategoryColor = "#8B5CF6";
+    private String selectedCategoryIcon = String.valueOf(R.drawable.briefcase);
 
     private Calendar calendar;
 
@@ -179,9 +183,28 @@ public class CreateTaskActivity extends BaseActivity {
         updateCategoryButton(binding.btnCatPersonal, binding.iconCatPersonal, binding.txtCatPersonal, "Personal".equals(category));
         updateCategoryButton(binding.btnCatDesign, binding.iconCatDesign, binding.txtCatDesign, "Design".equals(category));
         updateCategoryButton(binding.btnCatHealth, binding.iconCatHealth, binding.txtCatHealth, "Health".equals(category));
+        
+        switch (category) {
+            case "Work":
+                selectedCategoryColor = "#FF9680";
+                selectedCategoryIcon = String.valueOf(R.drawable.briefcase);
+                break;
+            case "Personal":
+                selectedCategoryColor = "#06B6D4";
+                selectedCategoryIcon = String.valueOf(R.drawable.sport);
+                break;
+            case "Design":
+                selectedCategoryColor = "#80FFD9";
+                selectedCategoryIcon = String.valueOf(R.drawable.design);
+                break;
+            case "Health":
+                selectedCategoryColor = "#80FFA3";
+                selectedCategoryIcon = String.valueOf(R.drawable.heart);
+                break;
+        }
     }
 
-    private void updateCategoryButton(android.view.View container, ImageView icon, TextView text, boolean isSelected) {
+    private void updateCategoryButton(View container, ImageView icon, TextView text, boolean isSelected) {
         int whiteColor = ContextCompat.getColor(this, R.color.white);
         int mutedColor = ContextCompat.getColor(this, R.color.text_muted);
 
@@ -189,12 +212,12 @@ public class CreateTaskActivity extends BaseActivity {
             container.setBackgroundResource(R.drawable.bg_category_selected);
             icon.setImageTintList(ColorStateList.valueOf(whiteColor));
             text.setTextColor(whiteColor);
-            text.setTypeface(null, android.graphics.Typeface.BOLD);
+            text.setTypeface(null, Typeface.BOLD);
         } else {
             container.setBackgroundResource(R.drawable.bg_category_unselected);
             icon.setImageTintList(ColorStateList.valueOf(mutedColor));
             text.setTextColor(mutedColor);
-            text.setTypeface(null, android.graphics.Typeface.NORMAL);
+            text.setTypeface(null, Typeface.NORMAL);
         }
     }
 
@@ -229,17 +252,17 @@ public class CreateTaskActivity extends BaseActivity {
             binding.btnPriorityHigh.setBackgroundResource(R.drawable.bg_priority_high_selected);
             binding.dotPriorityHigh.setTextColor(whiteColor);
             binding.txtPriorityHigh.setTextColor(whiteColor);
-            binding.txtPriorityHigh.setTypeface(null, android.graphics.Typeface.BOLD);
+            binding.txtPriorityHigh.setTypeface(null, Typeface.BOLD);
         } else if ("Medium".equals(priority)) {
             binding.btnPriorityMedium.setBackgroundResource(R.drawable.bg_priority_medium_selected);
             binding.dotPriorityMedium.setTextColor(whiteColor);
             binding.txtPriorityMedium.setTextColor(whiteColor);
-            binding.txtPriorityMedium.setTypeface(null, android.graphics.Typeface.BOLD);
+            binding.txtPriorityMedium.setTypeface(null, Typeface.BOLD);
         } else if ("Low".equals(priority)) {
             binding.btnPriorityLow.setBackgroundResource(R.drawable.bg_priority_low_selected);
             binding.dotPriorityLow.setTextColor(whiteColor);
             binding.txtPriorityLow.setTextColor(whiteColor);
-            binding.txtPriorityLow.setTypeface(null, android.graphics.Typeface.BOLD);
+            binding.txtPriorityLow.setTypeface(null, Typeface.BOLD);
         }
     }
 
@@ -269,8 +292,8 @@ public class CreateTaskActivity extends BaseActivity {
                         selectedDate,
                         selectedTime,
                         selectedCategory,
-                        "#8B5CF6",
-                        "0",
+                        selectedCategoryColor,
+                        selectedCategoryIcon,
                         selectedPriority,
                         false
                 );

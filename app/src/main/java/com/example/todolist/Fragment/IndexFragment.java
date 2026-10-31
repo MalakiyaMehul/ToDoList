@@ -239,6 +239,7 @@ public class IndexFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        loadSavedAvatar();
         loadTasksFromFirebase();
     }
 
