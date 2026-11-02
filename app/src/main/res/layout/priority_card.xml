@@ -1,23 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+    android:id="@+id/priorityBg"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@drawable/priority_card"
-    android:padding="@dimen/_8sdp"
-    android:orientation="horizontal">
-
-    <ImageView
-        android:layout_width="@dimen/_16sdp"
-        android:layout_height="@dimen/_16sdp"
-        android:src="@drawable/flag"
-        android:layout_marginEnd="@dimen/_5sdp"
-        />
+    android:background="@drawable/bg_priority_container"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="8dp"
+    android:paddingVertical="3dp">
 
     <TextView
+        android:id="@+id/priorityDot"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="● "
+        android:textColor="@color/brand_tertiary"
+        android:textSize="9sp" />
+
+    <TextView
         android:id="@+id/priority"
-        android:text="1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-medium"
+        android:text="High"
         android:textColor="@color/white"
-        android:textSize="@dimen/_12sdp"/>
+        android:textSize="11sp" />
 </LinearLayout>

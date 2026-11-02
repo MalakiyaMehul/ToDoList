@@ -1,9 +1,7 @@
-
 package com.example.todolist.Fragment;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -23,6 +21,8 @@ import androidx.fragment.app.Fragment;
 
 import com.example.todolist.Dialog.ChangeUserNameDialog;
 import com.example.todolist.Dialog.ChangeUserPassword;
+import com.example.todolist.SupabaseAuth;
+import com.example.todolist.SupabaseClient;
 import com.example.todolist.activity.ChangeUserProfileImage;
 import com.example.todolist.activity.LoginActivity;
 import com.example.todolist.databinding.FragmentProfileBinding;
@@ -33,20 +33,30 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class ProfileFragment extends Fragment {
 
     private FragmentProfileBinding binding;
-    private FirebaseAuth firebaseAuth;
-    private DatabaseReference userRef;
-    private ValueEventListener profileListener;
+    private String userId;
+    private String accessToken;
 
     public ProfileFragment() {
     }
@@ -57,9 +67,7 @@ public class ProfileFragment extends Fragment {
             ViewGroup container,
             Bundle savedInstanceState) {
 
-        binding = FragmentProfileBinding.inflate(
-                inflater, container, false);
-
+        binding = FragmentProfileBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
@@ -70,23 +78,40 @@ public class ProfileFragment extends Fragment {
 
         super.onViewCreated(view, savedInstanceState);
 
-        firebaseAuth = FirebaseAuth.getInstance();
+        userId = SupabaseAuth.getUserId(requireContext());
+
+        accessToken = SupabaseAuth.getAccessToken(requireContext());
 
         loadUserName();
         loadProfileImage();
+        loadTaskStats();
 
         getParentFragmentManager().setFragmentResultListener(
                 ChangeUserNameDialog.REQUEST_KEY,
                 getViewLifecycleOwner(),
                 (requestKey, result) -> {
+
                     String newName = result.getString(
-                            ChangeUserNameDialog.BUNDLE_USER_NAME);
+                            ChangeUserNameDialog.BUNDLE_USER_NAME
+                    );
 
                     if (newName != null && binding != null) {
-                        binding.txtUserName.setText(newName);
-                    }
-                });
 
+                        binding.txtUserName.setText(newName);
+
+                        requireContext()
+                                .getSharedPreferences(
+                                        "UserProfile",
+                                        Context.MODE_PRIVATE
+                                )
+                                .edit()
+                                .putString("user_name", newName)
+                                .apply();
+                    }
+                }
+        );
+
+        // Listen for Image change bottom sheet result
         getParentFragmentManager().setFragmentResultListener(
                 ChangeUserProfileImage.REQUEST_KEY,
                 getViewLifecycleOwner(),
@@ -97,180 +122,419 @@ public class ProfileFragment extends Fragment {
                     }
                 });
 
-        binding.rowChangeName.setOnClickListener(v -> openChangeUsernameDialog());
-
-        binding.ivAvatar.setOnClickListener(v -> openChangeImageBottomSheet());
-        binding.rowChangeImage.setOnClickListener(v -> openChangeImageBottomSheet());
-
-        binding.rowChangePassword.setOnClickListener(v -> {
-            ChangeUserPassword dialog = new ChangeUserPassword();
-            dialog.show(getParentFragmentManager(), "ChangeUserPassword");
+        // Top App Bar
+        binding.btnBack.setOnClickListener(v -> {
+            if (getActivity() != null) {
+                getActivity().onBackPressed();
+            }
         });
 
+        binding.btnMoreOptions.setOnClickListener(v -> showAboutUsDialog());
+
+        // Avatar click and Camera button click
+        binding.ivAvatar.setOnClickListener(v -> openChangeImageBottomSheet());
+        binding.btnChangeAvatar.setOnClickListener(v -> openChangeImageBottomSheet());
+        binding.ivTopAvatar.setOnClickListener(v -> openChangeImageBottomSheet());
+
+        // Account Settings Rows
+        binding.rowChangeName.setOnClickListener(v -> openChangeUsernameDialog());
+        binding.btnManageSecurity.setOnClickListener(v -> openChangePasswordDialog());
+
+        binding.rowChangePassword.setOnClickListener(v -> openChangePasswordDialog());
+
+        binding.rowNotificationPreferences.setOnClickListener(v ->
+                showMessage("Notification Preferences updated")
+        );
+
+        binding.rowConnectedCalendars.setOnClickListener(v ->
+                showMessage("Connected Calendars: 2 synced")
+        );
+
+        // App Preferences Rows
         binding.rowAppSettings.setOnClickListener(v -> showAppSettingsDialog());
+        binding.btnCustomization.setOnClickListener(v -> showAppSettingsDialog());
 
-        binding.rowAboutUs.setOnClickListener(v -> showAboutUsDialog());
+        binding.rowSoundHaptics.setOnClickListener(v ->
+                showMessage("Sound & Haptics active: Synthesized chime")
+        );
 
-        binding.rowFaq.setOnClickListener(v -> showFaqDialog());
-
-        binding.rowHelpFeedback.setOnClickListener(v -> showHelpFeedbackDialog());
-
-        binding.rowSupportUs.setOnClickListener(v -> showSupportUsDialog());
-
+        // Log out button
         binding.rowLogOut.setOnClickListener(v -> showLogoutDialog());
     }
 
     private void loadUserName() {
-        FirebaseUser currentUser = firebaseAuth.getCurrentUser();
-        if (currentUser == null) {
+
+        if (userId == null || accessToken == null) {
+
             binding.txtUserName.setText("User");
+            binding.txtUserEmail.setText("");
+
             return;
         }
-        userRef = FirebaseDatabase.getInstance().getReference("Users").child(currentUser.getUid());
-        profileListener = new ValueEventListener() {
+
+        Request request = new Request.Builder()
+                .url(SupabaseClient.SUPABASE_URL
+                        + "/rest/v1/profiles?id=eq."
+                        + userId
+                        + "&select=username,email")
+                .addHeader("apikey", SupabaseClient.SUPABASE_KEY)
+                .addHeader("Authorization", "Bearer " + accessToken)
+                .addHeader("Accept", "application/json")
+                .get()
+                .build();
+
+        SupabaseClient.client.newCall(request).enqueue(new Callback() {
+
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (binding == null) {
-                    return;
-                }
-                String username = snapshot.child("userName").getValue(String.class);
-                if (username == null || username.trim().isEmpty()) {
-                    username = snapshot.child("username").getValue(String.class);
-                }
-                if (username == null || username.trim().isEmpty()) {
-                    username = snapshot.child("name").getValue(String.class);
-                }
-                if (username == null || username.trim().isEmpty()) {
-                    username = currentUser.getDisplayName();
-                }
-                if (username == null || username.trim().isEmpty()) {
-                    username = "User";
-                }
-                binding.txtUserName.setText(username);
+            public void onFailure(Call call, IOException e) {
+
+                if (getActivity() == null) return;
+
+                requireActivity().runOnUiThread(() -> {
+
+                    if (binding != null) {
+                        showMessage("Profile load failed");
+                    }
+                });
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                showMessage(error.getMessage());
+            public void onResponse(Call call, Response response)
+                    throws IOException {
+
+                String responseBody = response.body() != null
+                        ? response.body().string()
+                        : "[]";
+
+                boolean success = response.isSuccessful();
+
+                response.close();
+
+                if (!success) return;
+
+                JsonArray array = JsonParser
+                        .parseString(responseBody)
+                        .getAsJsonArray();
+
+                if (array.size() == 0) return;
+
+                JsonObject profile = array.get(0).getAsJsonObject();
+
+                String username = profile.has("username")
+                        && !profile.get("username").isJsonNull()
+                        ? profile.get("username").getAsString()
+                        : "User";
+
+                String email = profile.has("email")
+                        && !profile.get("email").isJsonNull()
+                        ? profile.get("email").getAsString()
+                        : "";
+
+                if (getActivity() == null) return;
+
+                requireActivity().runOnUiThread(() -> {
+
+                    if (binding == null) return;
+
+                    binding.txtUserName.setText(username);
+                    binding.txtUserEmail.setText(email);
+
+                    requireContext()
+                            .getSharedPreferences(
+                                    "UserProfile",
+                                    Context.MODE_PRIVATE
+                            )
+                            .edit()
+                            .putString("user_name", username)
+                            .apply();
+                });
             }
-        };
-        userRef.addValueEventListener(profileListener);
+        });
     }
 
-    private void openChangeUsernameDialog() {
-        if (firebaseAuth.getCurrentUser() == null) {
-            showMessage("Please log in first");
+
+
+    private void loadTaskStats() {
+
+        if (userId == null || accessToken == null) {
+
+            binding.tvCompletedStat.setText("0");
+            binding.tvOnTimeStat.setText("0%");
+            binding.tvStreakStat.setText("0d");
+
             return;
         }
-        ChangeUserNameDialog dialog = new ChangeUserNameDialog();
-        dialog.show(getParentFragmentManager(), "ChangeUserNameDialog");
+
+        Request request = new Request.Builder()
+                .url(SupabaseClient.SUPABASE_URL
+                        + "/rest/v1/tasks?user_id=eq."
+                        + userId
+                        + "&select=completed,date")
+                .addHeader("apikey", SupabaseClient.SUPABASE_KEY)
+                .addHeader("Authorization", "Bearer " + accessToken)
+                .addHeader("Accept", "application/json")
+                .get()
+                .build();
+
+        SupabaseClient.client.newCall(request).enqueue(new Callback() {
+
+            @Override
+            public void onFailure(Call call, IOException e) {
+
+                if (getActivity() == null) return;
+
+                requireActivity().runOnUiThread(() -> {
+
+                    if (binding != null) {
+                        showMessage("Task statistics load failed");
+                    }
+                });
+            }
+
+            @Override
+            public void onResponse(Call call, Response response)
+                    throws IOException {
+
+                String responseBody = response.body() != null
+                        ? response.body().string()
+                        : "[]";
+
+                boolean success = response.isSuccessful();
+
+                response.close();
+
+                if (!success) return;
+
+                JsonArray tasks = JsonParser
+                        .parseString(responseBody)
+                        .getAsJsonArray();
+
+                int total = tasks.size();
+                int completed = 0;
+
+                Set<String> completedDates = new HashSet<>();
+
+                for (int i = 0; i < tasks.size(); i++) {
+
+                    JsonObject task = tasks.get(i).getAsJsonObject();
+
+                    boolean isCompleted = task.has("completed")
+                            && !task.get("completed").isJsonNull()
+                            && task.get("completed").getAsBoolean();
+
+                    if (isCompleted) {
+
+                        completed++;
+
+                        if (task.has("date")
+                                && !task.get("date").isJsonNull()) {
+
+                            String date = task.get("date").getAsString();
+
+                            if (!date.trim().isEmpty()) {
+                                completedDates.add(date);
+                            }
+                        }
+                    }
+                }
+
+                int rate = total > 0
+                        ? (completed * 100) / total
+                        : 0;
+
+                int finalCompleted = completed;
+                int finalRate = rate;
+                int finalStreak = completedDates.size();
+
+                if (getActivity() == null) return;
+
+                requireActivity().runOnUiThread(() -> {
+
+                    if (binding == null) return;
+
+                    binding.tvCompletedStat.setText(
+                            String.valueOf(finalCompleted)
+                    );
+
+                    binding.tvOnTimeStat.setText(
+                            finalRate + "%"
+                    );
+
+                    binding.tvStreakStat.setText(
+                            finalStreak + "d"
+                    );
+                });
+            }
+        });
+    }
+
+
+    private void openChangeUsernameDialog() {
+
+        if (!SupabaseAuth.isLoggedIn(requireContext())) {
+
+            showMessage("Please log in first");
+
+            return;
+        }
+
+        ChangeUserNameDialog dialog =
+                new ChangeUserNameDialog();
+
+        dialog.show(
+                getParentFragmentManager(),
+                "ChangeUserNameDialog"
+        );
+    }
+
+    private void openChangePasswordDialog() {
+
+        if (!SupabaseAuth.isLoggedIn(requireContext())) {
+
+            showMessage("Please log in first");
+
+            return;
+        }
+
+        ChangeUserPassword dialog =
+                new ChangeUserPassword();
+
+        dialog.show(
+                getParentFragmentManager(),
+                "ChangeUserPassword"
+        );
     }
 
     private void openChangeImageBottomSheet() {
-        if (firebaseAuth.getCurrentUser() == null) {
+
+        if (!SupabaseAuth.isLoggedIn(requireContext())) {
+
             showMessage("Please log in first");
+
             return;
         }
-        ChangeUserProfileImage bottomSheet = new ChangeUserProfileImage();
-        bottomSheet.show(getParentFragmentManager(), "ChangeUserProfileImage");
+
+        ChangeUserProfileImage bottomSheet =
+                new ChangeUserProfileImage();
+
+        bottomSheet.show(
+                getParentFragmentManager(),
+                "ChangeUserProfileImage"
+        );
     }
 
-    private void saveProfileImage(Uri sourceUri) {
-        try {
-            FirebaseUser currentUser = firebaseAuth.getCurrentUser();
-            String uid = currentUser != null ? currentUser.getUid() : "user";
-            File internalFile = new File(requireContext().getFilesDir(), "profile_" + uid + ".jpg");
 
-            try (InputStream in = requireContext().getContentResolver().openInputStream(sourceUri);
+    private void saveProfileImage(Uri sourceUri) {
+
+        try {
+
+            String uid = userId != null
+                    ? userId
+                    : "user";
+
+            File internalFile = new File(
+                    requireContext().getFilesDir(),
+                    "profile_" + uid + ".jpg"
+            );
+
+            try (InputStream in = requireContext()
+                    .getContentResolver()
+                    .openInputStream(sourceUri);
+
                  OutputStream out = new FileOutputStream(internalFile)) {
+
                 byte[] buffer = new byte[4096];
+
                 int bytesRead;
+
                 while ((bytesRead = in.read(buffer)) != -1) {
                     out.write(buffer, 0, bytesRead);
                 }
             }
 
             if (binding != null) {
+
+                Uri savedUri = Uri.fromFile(internalFile);
+
                 binding.ivAvatar.setImageURI(null);
-                binding.ivAvatar.setImageURI(Uri.fromFile(internalFile));
+                binding.ivAvatar.setImageURI(savedUri);
+
+                binding.ivTopAvatar.setImageURI(null);
+                binding.ivTopAvatar.setImageURI(savedUri);
             }
 
-            requireContext().getSharedPreferences("UserProfile", Context.MODE_PRIVATE)
+            requireContext()
+                    .getSharedPreferences(
+                            "UserProfile",
+                            Context.MODE_PRIVATE
+                    )
                     .edit()
-                    .putString("avatar_uri", internalFile.getAbsolutePath())
+                    .putString(
+                            "avatar_uri",
+                            internalFile.getAbsolutePath()
+                    )
                     .apply();
 
-            Bitmap bitmap = BitmapFactory.decodeFile(internalFile.getAbsolutePath());
-            if (bitmap != null && currentUser != null) {
-                Bitmap scaled = Bitmap.createScaledBitmap(bitmap, 180, 180, true);
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                scaled.compress(Bitmap.CompressFormat.JPEG, 75, baos);
-                String base64Image = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
-
-                FirebaseDatabase.getInstance()
-                        .getReference("Users")
-                        .child(currentUser.getUid())
-                        .child("profileImage")
-                        .setValue(base64Image);
-            }
-
             showMessage("Profile image updated successfully");
+
         } catch (Exception e) {
-            showMessage("Failed to save image: " + e.getMessage());
+
+            showMessage(
+                    "Failed to save image: " + e.getMessage()
+            );
         }
     }
 
+
     private void loadProfileImage() {
-        FirebaseUser currentUser = firebaseAuth.getCurrentUser();
-        String uid = currentUser != null ? currentUser.getUid() : "user";
-        File internalFile = new File(requireContext().getFilesDir(), "profile_" + uid + ".jpg");
+
+        String uid = userId != null
+                ? userId
+                : "user";
+
+        File internalFile = new File(
+                requireContext().getFilesDir(),
+                "profile_" + uid + ".jpg"
+        );
 
         if (internalFile.exists()) {
-            binding.ivAvatar.setImageURI(Uri.fromFile(internalFile));
+
+            Uri uri = Uri.fromFile(internalFile);
+
+            binding.ivAvatar.setImageURI(uri);
+            binding.ivTopAvatar.setImageURI(uri);
+
             return;
         }
 
-        String savedPath = requireContext().getSharedPreferences("UserProfile", Context.MODE_PRIVATE)
+        String savedPath = requireContext()
+                .getSharedPreferences(
+                        "UserProfile",
+                        Context.MODE_PRIVATE
+                )
                 .getString("avatar_uri", null);
+
         if (savedPath != null) {
+
             File savedFile = new File(savedPath);
+
             if (savedFile.exists()) {
-                binding.ivAvatar.setImageURI(Uri.fromFile(savedFile));
-                return;
+
+                Uri uri = Uri.fromFile(savedFile);
+
+                binding.ivAvatar.setImageURI(uri);
+                binding.ivTopAvatar.setImageURI(uri);
             }
         }
-
-        if (currentUser != null) {
-            FirebaseDatabase.getInstance()
-                    .getReference("Users")
-                    .child(currentUser.getUid())
-                    .child("profileImage")
-                    .get()
-                    .addOnSuccessListener(snapshot -> {
-                        if (binding == null) return;
-                        String base64 = snapshot.getValue(String.class);
-                        if (base64 != null && !base64.isEmpty()) {
-                            try {
-                                byte[] decoded = Base64.decode(base64, Base64.DEFAULT);
-                                Bitmap bitmap = BitmapFactory.decodeByteArray(decoded, 0, decoded.length);
-                                if (bitmap != null) {
-                                    binding.ivAvatar.setImageBitmap(bitmap);
-                                    try (FileOutputStream fos = new FileOutputStream(internalFile)) {
-                                        bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fos);
-                                    } catch (Exception ignored) {}
-                                }
-                            } catch (Exception ignored) {}
-                        }
-                    });
-        }
     }
+
 
     private void showAppSettingsDialog() {
         String[] options = {"Dark Theme (Active)", "Notifications Enabled", "Clear Temporary Cache"};
         boolean[] checked = {true, true, false};
 
         new AlertDialog.Builder(requireContext())
-                .setTitle("App Settings")
+                .setTitle("Appearance & Settings")
                 .setMultiChoiceItems(options, checked, (dialog, which, isChecked) -> {
                     checked[which] = isChecked;
                     if (which == 2 && isChecked) {
@@ -292,110 +556,57 @@ public class ProfileFragment extends Fragment {
 
     private void showAboutUsDialog() {
         new AlertDialog.Builder(requireContext())
-                .setTitle("About UpTodo")
-                .setMessage("UpTodo v1.0.0\n\nUpTodo is your everyday task manager designed to help you organize daily routines, manage to-do items, track categories, and improve productivity.")
+                .setTitle("PulseTask")
+                .setMessage("PulseTask v2.4.1 (Build 820)\nObsidian Engine\n\nElevate your daily productivity with hyper-focus telemetry and synchronized workflows.")
                 .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
                 .show();
     }
 
-    private void showFaqDialog() {
-        String faqText = "1. How to add a task?\n" +
-                "Tap '+' at the bottom bar, enter title, description, category, and priority, then save.\n\n" +
-                "2. How to complete or edit a task?\n" +
-                "Tap any task in your list to edit details or mark it done.\n\n" +
-                "3. How to create custom categories?\n" +
-                "When choosing a category, tap '+ Create New' to create customized categories.\n\n" +
-                "4. How to change username or profile picture?\n" +
-                "Use 'Change account name' or tap on your avatar in this screen.";
-
-        new AlertDialog.Builder(requireContext())
-                .setTitle("FAQ")
-                .setMessage(faqText)
-                .setPositiveButton("Close", (dialog, which) -> dialog.dismiss())
-                .show();
-    }
-
-    private void showHelpFeedbackDialog() {
-        EditText input = new EditText(requireContext());
-        input.setHint("Write your feedback or issue here...");
-        input.setTextColor(Color.WHITE);
-        input.setHintTextColor(Color.GRAY);
-        int padding = (int) (16 * getResources().getDisplayMetrics().density);
-        input.setPadding(padding, padding, padding, padding);
-
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Help & Feedback")
-                .setView(input)
-                .setPositiveButton("Submit", (dialog, which) -> {
-                    String feedback = input.getText().toString().trim();
-                    if (!feedback.isEmpty()) {
-                        FirebaseUser user = firebaseAuth.getCurrentUser();
-                        String uid = user != null ? user.getUid() : "anonymous";
-                        DatabaseReference feedbackRef = FirebaseDatabase.getInstance()
-                                .getReference("Feedback")
-                                .push();
-                        HashMap<String, Object> map = new HashMap<>();
-                        map.put("uid", uid);
-                        map.put("feedback", feedback);
-                        map.put("timestamp", System.currentTimeMillis());
-                        feedbackRef.setValue(map);
-                        showMessage("Thank you for your feedback!");
-                    } else {
-                        showMessage("Please enter feedback before submitting");
-                    }
-                })
-                .setNeutralButton("Email Support", (dialog, which) -> {
-                    Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
-                    emailIntent.setData(Uri.parse("mailto:support@uptodo.com"));
-                    emailIntent.putExtra(Intent.EXTRA_SUBJECT, "UpTodo Feedback");
-                    try {
-                        startActivity(Intent.createChooser(emailIntent, "Send Email"));
-                    } catch (Exception e) {
-                        showMessage("No email app found");
-                    }
-                })
-                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
-                .show();
-    }
-
-    private void showSupportUsDialog() {
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Support Us")
-                .setMessage("Love using UpTodo? Help us grow by sharing the app with your family and friends!")
-                .setPositiveButton("Share App", (dialog, which) -> {
-                    Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                    shareIntent.setType("text/plain");
-                    shareIntent.putExtra(Intent.EXTRA_TEXT, "Check out UpTodo - Simple & fast task management!");
-                    startActivity(Intent.createChooser(shareIntent, "Share UpTodo via"));
-                })
-                .setNeutralButton("Rate 5 Stars", (dialog, which) -> {
-                    try {
-                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + requireContext().getPackageName())));
-                    } catch (Exception e) {
-                        showMessage("Thank you for your 5-star support!");
-                    }
-                })
-                .setNegativeButton("Close", (dialog, which) -> dialog.dismiss())
-                .show();
-    }
 
     private void showLogoutDialog() {
+
         new AlertDialog.Builder(requireContext())
-                .setTitle("Log out")
-                .setMessage("Are you sure you want to log out?")
-                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
-                .setPositiveButton("Log out", (dialog, which) -> {
-                    firebaseAuth.signOut();
-                    showMessage("Logged out successfully");
-                    Intent intent = new Intent(requireContext(), LoginActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                    if (getActivity() != null) {
-                        getActivity().finish();
-                    }
-                })
+
+                .setTitle("Log Out")
+
+                .setMessage(
+                        "Are you sure you want to log out of your account?"
+                )
+
+                .setNegativeButton(
+                        "Cancel",
+                        (dialog, which) -> dialog.dismiss()
+                )
+
+                .setPositiveButton(
+                        "Log Out",
+                        (dialog, which) -> {
+
+                            SupabaseAuth.signOut(requireContext());
+
+                            showMessage("Logged out successfully");
+
+                            Intent intent = new Intent(
+                                    requireContext(),
+                                    LoginActivity.class
+                            );
+
+                            intent.setFlags(
+                                    Intent.FLAG_ACTIVITY_NEW_TASK
+                                            | Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            );
+
+                            startActivity(intent);
+
+                            if (getActivity() != null) {
+                                getActivity().finish();
+                            }
+                        }
+                )
+
                 .show();
     }
+
 
     private void showMessage(String message) {
         if (isAdded()) {
@@ -405,11 +616,9 @@ public class ProfileFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
-        if (userRef != null && profileListener != null) {
-            userRef.removeEventListener(profileListener);
-            profileListener = null;
-        }
+
         binding = null;
+
         super.onDestroyView();
     }
 }

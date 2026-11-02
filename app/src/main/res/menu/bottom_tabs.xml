@@ -1,22 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/nav_index"
-        android:title="Index"
-        android:icon="@drawable/nav_index_icon"
-        />
-    <item android:id="@+id/nav_calendar"
-        android:title="Calendar"
-        android:icon="@drawable/nav_calender_icon"
-        />
-    <item android:id="@+id/Calendar1"
-        android:title=""
-        />
-    <item android:id="@+id/nav_focus"
-        android:icon="@drawable/nav_clock_icon"
-        android:title="Focuse"
-        />
-    <item android:id="@+id/nav_profile"
-        android:icon="@drawable/nav_profile_icon"
-        android:title="Profile"
-        />
+    <item
+        android:id="@+id/nav_index"
+        android:icon="@drawable/ic_nav_tasks"
+        android:title="Tasks" />
+
+    <item
+        android:id="@+id/nav_calendar"
+        android:icon="@drawable/ic_nav_calendar"
+        android:title="Calendar" />
+
+    <item
+        android:id="@+id/Calendar1"
+        android:enabled="false"
+        android:title="" />
+
+    <item
+        android:id="@+id/nav_focus"
+        android:icon="@drawable/ic_nav_focus"
+        android:title="Focus" />
+
+    <item
+        android:id="@+id/nav_profile"
+        android:icon="@drawable/ic_nav_stats"
+        android:title="Stats" />
 </menu>

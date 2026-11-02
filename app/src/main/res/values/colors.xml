@@ -7,4 +7,32 @@
     <color name="text_white">#FFFFFF</color>
     <color name="text_secondary">#8E8E93</color>
     <color name="danger_red">#FF4949</color>
+
+    <!-- Design System Colors from Image 2 -->
+    <color name="brand_primary">#8B5CF6</color>
+    <color name="brand_primary_dark">#7C3AED</color>
+    <color name="brand_primary_deep">#6D28D9</color>
+    <color name="brand_primary_light">#C4B5FD</color>
+    <color name="brand_primary_container">#381E72</color>
+    <color name="brand_primary_button_text">#2E1065</color>
+    <color name="brand_secondary">#A855F7</color>
+    <color name="brand_tertiary">#F43F5E</color>
+    <color name="brand_neutral_bg">#0B0B0E</color>
+
+    <!-- Surface & Card Colors -->
+    <color name="modal_surface_bg">#15161A</color>
+    <color name="card_input_bg">#1B1C21</color>
+    <color name="card_border">#282A33</color>
+    <color name="icon_surface_bg">#252730</color>
+    <color name="close_button_bg">#222329</color>
+    <color name="drag_handle_color">#3A3B43</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_muted">#8E93A0</color>
+    <color name="text_hint">#5F6370</color>
+    <color name="text_required">#C084FC</color>
+    <color name="dot_low">#6B7280</color>
+    <color name="dot_medium">#A855F7</color>
+    <color name="dot_high">#FFFFFF</color>
 </resources>
