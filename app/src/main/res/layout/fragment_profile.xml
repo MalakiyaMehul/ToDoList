@@ -26,30 +26,6 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <!-- Back Arrow -->
-            <ImageButton
-                android:id="@+id/btnBack"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Back"
-                android:padding="6dp"
-                android:src="@drawable/ic_back_arrow"
-                app:tint="@color/white" />
-
-            <!-- App Logo Checkbox Badge -->
-            <FrameLayout
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_marginStart="6dp"
-                android:background="@drawable/bg_top_check_badge">
-
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_check_purple" />
-            </FrameLayout>
 
             <!-- Title: Settings -->
             <TextView
@@ -64,27 +40,6 @@
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
-            <!-- More Options Menu -->
-            <ImageButton
-                android:id="@+id/btnMoreOptions"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="More options"
-                android:padding="6dp"
-                android:src="@drawable/ic_more_vert_custom"
-                app:tint="@color/white" />
-
-            <!-- Mini Avatar Top Right -->
-            <ImageButton
-                android:id="@+id/ivTopAvatar"
-                android:layout_width="34dp"
-                android:layout_height="34dp"
-                android:layout_marginStart="6dp"
-                android:background="@drawable/img_user_avatar"
-                android:contentDescription="User Avatar"
-                android:scaleType="centerCrop"
-                android:src="@drawable/img_user_avatar" />
         </LinearLayout>
 
         <!-- Profile Hero Section -->
@@ -169,35 +124,6 @@
                 android:text="elena.rostova@designcraft.io"
                 android:textColor="@color/text_muted"
                 android:textSize="13sp" />
-
-            <!-- PRO MEMBER Pill -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/bg_pill_pro"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="14dp"
-                android:paddingVertical="5dp">
-
-                <ImageView
-                    android:layout_width="12dp"
-                    android:layout_height="12dp"
-                    android:src="@drawable/ic_pulse_bolt"
-                    app:tint="@color/white" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="5dp"
-                    android:fontFamily="sans-serif-medium"
-                    android:letterSpacing="0.06"
-                    android:text="PRO MEMBER"
-                    android:textColor="@color/white"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
 
             <!-- 3 Stat Metrics Card (Completed, On Time, Streak) -->
             <LinearLayout
@@ -342,14 +268,6 @@
                 android:textSize="11sp"
                 android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/btnManageSecurity"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif"
-                android:text="Manage Security"
-                android:textColor="@color/text_muted"
-                android:textSize="11sp" />
         </LinearLayout>
 
         <!-- Item 1: Edit Profile -->

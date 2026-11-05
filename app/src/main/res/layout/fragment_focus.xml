@@ -65,16 +65,6 @@
                     android:textSize="11sp" />
             </LinearLayout>
 
-            <!-- Search Icon -->
-            <ImageButton
-                android:id="@+id/btnSearchTop"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Search"
-                android:padding="6dp"
-                android:src="@drawable/ic_search" />
-
             <!-- Profile Avatar Circle -->
             <ImageButton
                 android:id="@+id/ivFocusAvatar"

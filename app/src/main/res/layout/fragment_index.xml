@@ -56,15 +56,6 @@
                 android:textSize="11sp" />
         </LinearLayout>
 
-        <!-- Search Icon -->
-        <ImageButton
-            android:id="@+id/btnSearchTop"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Search"
-            android:padding="6dp"
-            android:src="@drawable/ic_search" />
 
         <!-- User Avatar Circle -->
         <ImageButton
@@ -145,52 +136,6 @@
                         android:textSize="13sp" />
                 </LinearLayout>
 
-                <!-- 65% done Progress Pill -->
-                <LinearLayout
-                    android:id="@+id/layoutProgressBadge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_version_pill"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="10dp"
-                    android:paddingVertical="6dp">
-
-                    <!-- Mini progress circle -->
-                    <ProgressBar
-                        android:id="@+id/progressDone"
-                        style="?android:attr/progressBarStyleSmall"
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:indeterminate="false"
-                        android:progress="65"
-                        android:progressDrawable="@drawable/progress_bar_horizontal" />
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/txtProgressPercent"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="65%"
-                            android:textColor="@color/white"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif"
-                            android:text="done"
-                            android:textColor="@color/text_muted"
-                            android:textSize="9sp" />
-                    </LinearLayout>
-                </LinearLayout>
             </LinearLayout>
 
             <!-- Quick Add / Search Bar -->

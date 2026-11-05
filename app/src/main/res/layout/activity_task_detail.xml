@@ -56,27 +56,6 @@
             android:textSize="17sp"
             android:textStyle="bold" />
 
-        <!-- More Options Menu -->
-        <ImageButton
-            android:id="@+id/btnMoreOptions"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="More options"
-            android:padding="6dp"
-            android:src="@drawable/ic_more_vert_custom"
-            app:tint="@color/white" />
-
-        <!-- User Profile Avatar -->
-        <ImageButton
-            android:id="@+id/ivTopAvatar"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginStart="6dp"
-            android:background="@drawable/img_user_avatar"
-            android:contentDescription="User Avatar"
-            android:scaleType="centerCrop"
-            android:src="@drawable/img_user_avatar" />
     </LinearLayout>
 
     <!-- Scrollable Content -->

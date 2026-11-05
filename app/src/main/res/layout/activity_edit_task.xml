@@ -106,20 +106,6 @@
                 android:orientation="horizontal">
 
                 <!-- Close Circular Button -->
-                <FrameLayout
-                    android:id="@+id/btnHeaderClose"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:background="@drawable/bg_circle_icon_dark"
-                    android:clickable="true"
-                    android:focusable="true">
-
-                    <ImageView
-                        android:layout_width="14dp"
-                        android:layout_height="14dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/ic_close_gray" />
-                </FrameLayout>
 
                 <!-- Task ID & Edit Task Title -->
                 <LinearLayout
@@ -237,18 +223,6 @@
                         android:textColor="@color/text_muted"
                         android:textSize="10sp"
                         android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/badgeRequired"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_required_pill"
-                        android:fontFamily="sans-serif-medium"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="3dp"
-                        android:text="Required"
-                        android:textColor="#A1A1AA"
-                        android:textSize="10sp" />
                 </LinearLayout>
 
                 <!-- Task Title Input Card -->
@@ -312,27 +286,6 @@
                         android:textColor="@color/text_muted"
                         android:textSize="10sp"
                         android:textStyle="bold" />
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <ImageView
-                            android:layout_width="14dp"
-                            android:layout_height="14dp"
-                            android:src="@drawable/ic_markdown" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="5dp"
-                            android:fontFamily="sans-serif"
-                            android:text="Markdown supported"
-                            android:textColor="@color/text_muted"
-                            android:textSize="10sp" />
-                    </LinearLayout>
                 </LinearLayout>
 
                 <!-- Description Input Card -->
@@ -386,27 +339,7 @@
                         android:textSize="10sp"
                         android:textStyle="bold" />
 
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
 
-                        <ImageView
-                            android:layout_width="12dp"
-                            android:layout_height="12dp"
-                            android:src="@drawable/ic_globe" />
-
-                        <TextView
-                            android:id="@+id/txtTimezone"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="5dp"
-                            android:fontFamily="sans-serif"
-                            android:text="EST (UTC-4)"
-                            android:textColor="@color/text_muted"
-                            android:textSize="10sp" />
-                    </LinearLayout>
                 </LinearLayout>
 
                 <!-- Due Date & Target Time 2-Card Row -->
