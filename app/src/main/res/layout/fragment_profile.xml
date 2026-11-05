@@ -25,8 +25,6 @@
             android:layout_height="52dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
-
-
             <!-- Title: Settings -->
             <TextView
                 android:id="@+id/tvTitle"
@@ -34,12 +32,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
                 android:layout_weight="1"
+                android:textAlignment="center"
                 android:fontFamily="sans-serif-medium"
                 android:text="Settings"
                 android:textColor="@color/white"
                 android:textSize="18sp"
                 android:textStyle="bold" />
-
         </LinearLayout>
 
         <!-- Profile Hero Section -->
@@ -106,12 +104,7 @@
                     android:textSize="22sp"
                     android:textStyle="bold" />
 
-                <ImageView
-                    android:id="@+id/ivVerifiedBadge"
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:layout_marginStart="6dp"
-                    android:src="@drawable/ic_verified_badge" />
+
             </LinearLayout>
 
             <!-- User Email -->
@@ -268,6 +261,14 @@
                 android:textSize="11sp"
                 android:textStyle="bold" />
 
+            <TextView
+                android:id="@+id/btnManageSecurity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:text="Manage Security"
+                android:textColor="@color/text_muted"
+                android:textSize="11sp" />
         </LinearLayout>
 
         <!-- Item 1: Edit Profile -->

@@ -85,7 +85,6 @@ public class IndexFragment extends Fragment {
             startActivity(intent);
         });
 
-        binding.btnSearchTop.setOnClickListener(v -> binding.edtQuickSearch.requestFocus());
 
         binding.btnDeepFocusPlay.setOnClickListener(v ->
                 Toast.makeText(requireContext(), "Starting Deep Focus session...", Toast.LENGTH_SHORT).show()
@@ -296,9 +295,6 @@ public class IndexFragment extends Fragment {
 
         int totalCount = allTasks.size() + completedTasks.size();
         int percent = totalCount > 0 ? (completedTasks.size() * 100) / totalCount : 0;
-        binding.txtProgressPercent.setText(percent + "%");
-        binding.progressDone.setProgress(percent);
-
         updateTabUI(currentTab);
     }
 

@@ -142,40 +142,6 @@ public class CalendarTaskAdapter extends RecyclerView.Adapter<CalendarTaskAdapte
         boolean isLast = (position == getItemCount() - 1);
         binding.viewTimelineLine.setVisibility(isLast ? View.INVISIBLE : View.VISIBLE);
 
-        // Completion status UI
-        boolean completed = task.isCompleted();
-        if (completed) {
-            binding.btnCheckTask.setBackgroundResource(R.drawable.bg_timeline_checkbox_checked);
-            binding.imgCheckMark.setColorFilter(Color.WHITE);
-            binding.txtTitle.setPaintFlags(binding.txtTitle.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-            binding.txtTitle.setTextColor(Color.parseColor("#71717A"));
-            binding.viewTimelineDot.setBackgroundResource(R.drawable.bg_timeline_dot_inactive);
-        } else {
-            binding.btnCheckTask.setBackgroundResource(R.drawable.bg_timeline_checkbox);
-            binding.imgCheckMark.setColorFilter(Color.parseColor("#4B4D5E"));
-            binding.txtTitle.setPaintFlags(binding.txtTitle.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
-            binding.txtTitle.setTextColor(Color.WHITE);
-            binding.viewTimelineDot.setBackgroundResource(R.drawable.bg_timeline_dot_active);
-        }
-
-        binding.btnCheckTask.setOnClickListener(v -> {
-            boolean newStatus = !task.isCompleted();
-            task.setCompleted(newStatus);
-            notifyItemChanged(holder.getAdapterPosition());
-
-            if (task.getTaskId() != null) {
-                String token = SharedPrefManager.getInstance(v.getContext()).getString("access_token");
-                if (token.isEmpty()) {
-                    token = SupabaseAuth.getAccessToken(v.getContext());
-                }
-                new SupabaseRepository().updateTaskCompleted(task.getTaskId(), token, newStatus, null);
-            }
-
-            if (statusChangeListener != null) {
-                statusChangeListener.onStatusChange();
-            }
-        });
-
         // Click on task card to edit
         binding.layoutCard.setOnClickListener(v -> {
             if (clickListener != null) {

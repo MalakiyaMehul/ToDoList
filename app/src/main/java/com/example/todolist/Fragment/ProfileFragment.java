@@ -117,17 +117,8 @@ public class ProfileFragment extends Fragment {
                     }
                 });
 
-        binding.btnBack.setOnClickListener(v -> {
-            if (getActivity() != null) {
-                getActivity().onBackPressed();
-            }
-        });
-
-        binding.btnMoreOptions.setOnClickListener(v -> showAboutUsDialog());
-
         binding.ivAvatar.setOnClickListener(v -> openChangeImageBottomSheet());
         binding.btnChangeAvatar.setOnClickListener(v -> openChangeImageBottomSheet());
-        binding.ivTopAvatar.setOnClickListener(v -> openChangeImageBottomSheet());
 
         binding.rowChangeName.setOnClickListener(v -> openChangeUsernameDialog());
         binding.btnManageSecurity.setOnClickListener(v -> openChangePasswordDialog());
@@ -415,8 +406,6 @@ public class ProfileFragment extends Fragment {
                 Uri savedUri = Uri.fromFile(internalFile);
                 binding.ivAvatar.setImageURI(null);
                 binding.ivAvatar.setImageURI(savedUri);
-                binding.ivTopAvatar.setImageURI(null);
-                binding.ivTopAvatar.setImageURI(savedUri);
             }
 
             requireContext()
@@ -439,7 +428,6 @@ public class ProfileFragment extends Fragment {
         if (internalFile.exists()) {
             Uri uri = Uri.fromFile(internalFile);
             binding.ivAvatar.setImageURI(uri);
-            binding.ivTopAvatar.setImageURI(uri);
             return;
         }
 
@@ -452,7 +440,6 @@ public class ProfileFragment extends Fragment {
             if (savedFile.exists()) {
                 Uri uri = Uri.fromFile(savedFile);
                 binding.ivAvatar.setImageURI(uri);
-                binding.ivTopAvatar.setImageURI(uri);
             }
         }
     }

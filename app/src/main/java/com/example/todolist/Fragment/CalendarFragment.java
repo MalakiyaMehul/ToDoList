@@ -88,9 +88,6 @@ public class CalendarFragment extends Fragment {
                 Toast.makeText(requireContext(), "Timeline view active", Toast.LENGTH_SHORT).show()
         );
 
-        binding.btnSearchTop.setOnClickListener(v ->
-                Toast.makeText(requireContext(), "Search tasks...", Toast.LENGTH_SHORT).show()
-        );
     }
 
     private void updateMonth() {

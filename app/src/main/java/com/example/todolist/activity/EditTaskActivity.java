@@ -255,7 +255,6 @@ public class EditTaskActivity extends BaseActivity {
     private void setupListeners() {
         // Close Buttons
         binding.btnClose.setOnClickListener(v -> finish());
-        binding.btnHeaderClose.setOnClickListener(v -> finish());
 
         getOnBackPressedDispatcher().addCallback(this, new androidx.activity.OnBackPressedCallback(true) {
             @Override

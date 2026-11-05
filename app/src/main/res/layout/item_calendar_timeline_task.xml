@@ -122,11 +122,41 @@
                     android:textSize="11sp" />
             </LinearLayout>
 
+            <!-- SubTag Chip -->
+            <LinearLayout
+                android:id="@+id/layoutSubTag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_tab_unselected"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="3dp">
+
+                <ImageView
+                    android:id="@+id/imgSubTag"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginEnd="4dp"
+                    android:src="@drawable/ic_group_users"
+                    app:tint="@color/text_muted" />
+
+                <TextView
+                    android:id="@+id/txtSubTag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif"
+                    android:text="4 devs"
+                    android:textColor="@color/text_muted"
+                    android:textSize="11sp" />
+            </LinearLayout>
 
             <View
                 android:layout_width="0dp"
                 android:layout_height="1dp"
                 android:layout_weight="1" />
+
 
 
         </LinearLayout>

@@ -26,18 +26,6 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <!-- Checkbox Logo Badge -->
-            <FrameLayout
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:background="@drawable/bg_top_check_badge">
-
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_check_purple" />
-            </FrameLayout>
 
             <!-- Brand Name & Analytics Subtitle -->
             <LinearLayout
@@ -51,18 +39,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-medium"
-                    android:text="PulseTask"
+                    android:layout_marginLeft="@dimen/_100sdp"
+                    android:text="Analytics"
                     android:textColor="@color/white"
                     android:textSize="15sp"
                     android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif"
-                    android:text="Analytics"
-                    android:textColor="@color/text_muted"
-                    android:textSize="11sp" />
             </LinearLayout>
 
             <!-- Profile Avatar Circle -->

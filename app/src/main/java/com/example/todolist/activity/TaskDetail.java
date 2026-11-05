@@ -46,7 +46,6 @@ public class TaskDetail extends BaseActivity {
 
         extractIntentData();
         setupUI();
-        loadSavedAvatar();
         setupListeners();
     }
 
@@ -232,23 +231,6 @@ public class TaskDetail extends BaseActivity {
         // Back Navigation
         binding.btnBack.setOnClickListener(v -> finish());
 
-        // More options
-        binding.btnMoreOptions.setOnClickListener(v -> {
-            androidx.appcompat.widget.PopupMenu popup = new androidx.appcompat.widget.PopupMenu(this, v);
-            popup.getMenu().add(0, 1, 0, "Edit Task");
-            popup.getMenu().add(0, 2, 1, "Delete Task");
-            popup.setOnMenuItemClickListener(item -> {
-                if (item.getItemId() == 1) {
-                    openEditTaskActivity();
-                    return true;
-                } else if (item.getItemId() == 2) {
-                    confirmAndDeleteTask();
-                    return true;
-                }
-                return false;
-            });
-            popup.show();
-        });
 
         // Edit Objective / Pen
         binding.btnEditObjective.setOnClickListener(v -> openEditTaskActivity());
@@ -364,20 +346,6 @@ public class TaskDetail extends BaseActivity {
                     }
                 })
                 .show();
-    }
-    private void loadSavedAvatar() {
-        String savedAvatarUri = getSharedPreferences("UserProfile", Context.MODE_PRIVATE)
-                .getString("avatar_uri", null);
-
-        if (savedAvatarUri != null && !savedAvatarUri.isEmpty()) {
-            try {
-                File file = new File(savedAvatarUri);
-                if (file.exists()) {
-                    binding.ivTopAvatar.setImageURI(null);
-                    binding.ivTopAvatar.setImageURI(Uri.fromFile(file));
-                }
-            } catch (Exception ignored) {}
-        }
     }
 }
 

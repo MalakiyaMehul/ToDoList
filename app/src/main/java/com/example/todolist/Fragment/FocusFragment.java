@@ -112,9 +112,6 @@ public class FocusFragment extends Fragment {
     }
 
     private void setupActions() {
-        binding.btnSearchTop.setOnClickListener(v ->
-                Toast.makeText(requireContext(), "Search analytics...", Toast.LENGTH_SHORT).show()
-        );
 
         binding.btnHeaderTelemetry.setOnClickListener(v ->
                 Toast.makeText(requireContext(), "Telemetry stream live", Toast.LENGTH_SHORT).show()
