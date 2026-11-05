@@ -1,5 +1,7 @@
 package com.example.todolist.activity;
 
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 
@@ -15,6 +17,7 @@ public class BaseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         View rootView = findViewById(android.R.id.content);
+
         if (rootView != null) {
             ViewCompat.setOnApplyWindowInsetsListener(
                     rootView, (view, windowInsets) -> {

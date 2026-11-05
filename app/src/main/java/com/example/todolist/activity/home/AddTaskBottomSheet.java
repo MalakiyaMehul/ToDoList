@@ -12,17 +12,14 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.DialogFragment;
 
+import com.example.todolist.SharedPrefManager.SharedPrefManager;
+import com.example.todolist.activity.Supabase.SupabaseAuth;
+import com.example.todolist.activity.Supabase.SupabaseRepository;
 import com.example.todolist.databinding.ActivityAddTaskBottomSheetBinding;
 import com.example.todolist.model.CategoryModel;
-import com.example.todolist.model.TaskModel;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Calendar;
 import java.util.Locale;
@@ -73,7 +70,7 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
             String time = selectedTime;
             String category = selectedCategory;
             String priority = String.valueOf(this.priority);
-            saveTaskToFirebase(taskName, description, date, time, category, priority);
+            saveTaskToSupabase(taskName, description, date, time, category, priority);
         });
         getParentFragmentManager().setFragmentResultListener(
                 "category_selected",
@@ -93,23 +90,47 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
         return dialog;
     }
 
-    private void saveTaskToFirebase(String taskName, String description, String date, String time, String category, String priority) {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null) {
-            Toast.makeText(requireContext(), "Please login using Firebase Authentication", Toast.LENGTH_LONG).show();
+    private void saveTaskToSupabase(String taskName, String description, String date, String time, String category, String priority) {
+        SharedPrefManager prefManager = SharedPrefManager.getInstance(requireContext());
+        String userId = prefManager.getString("user_id");
+        if (userId == null || userId.isEmpty()) {
+            userId = SupabaseAuth.getUserId(requireContext());
+        }
+        String accessToken = prefManager.getString("access_token");
+        if (accessToken == null || accessToken.isEmpty()) {
+            accessToken = SupabaseAuth.getAccessToken(requireContext());
+        }
+
+        if (userId == null || userId.isEmpty() || accessToken == null || accessToken.isEmpty()) {
+            Toast.makeText(
+                    requireContext(),
+                    "User not logged in",
+                    Toast.LENGTH_SHORT
+            ).show();
             return;
         }
-        String uid = user.getUid();
-        DatabaseReference tasksRef = FirebaseDatabase.getInstance().getReference("Users").child(uid).child("Tasks");
-        String taskId = tasksRef.push().getKey();
-        if (taskId == null) {
-            return;
+        String username = prefManager.getString("username");
+        if (username.isEmpty()) {
+            username = SupabaseAuth.getUsername(requireContext());
         }
-        TaskModel task = new TaskModel(taskId, taskName, description, date, time, category,selectedCategoryColor, selectedCategoryIcon, priority, false);
-        tasksRef.child(taskId).setValue(task).addOnSuccessListener(unused -> {
-            Toast.makeText(requireContext(), "Task saved successfully", Toast.LENGTH_SHORT).show();
-            dismiss();
-        }).addOnFailureListener(error -> Toast.makeText(requireContext(), "Error: " + error.getMessage(), Toast.LENGTH_LONG).show());
+        if (username.isEmpty()) {
+            username = requireContext().getSharedPreferences("UserProfile", android.content.Context.MODE_PRIVATE).getString("user_name", "");
+        }
+        final String finalUserId = userId;
+        binding.btnSave.setEnabled(false);
+        SupabaseRepository repository = new SupabaseRepository();
+        repository.saveTask(finalUserId, username, accessToken, taskName, description, date, time, category, selectedCategoryColor, selectedCategoryIcon, priority, false, new SupabaseRepository.TaskCallback() {
+            @Override
+            public void onSuccess(String taskId) {
+                Toast.makeText(requireContext(), "Task saved successfully", Toast.LENGTH_SHORT).show();
+                dismiss();
+            }
+            @Override
+            public void onError(String error) {
+                binding.btnSave.setEnabled(true);
+                Toast.makeText(requireContext(), "Error: " + error, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     private void openCalendar() {

@@ -13,7 +13,7 @@ import androidx.annotation.Nullable;
 
 public class CircularProgressView extends View {
 
-    private int progress = 67; // default matching the design
+    private int progress = 67;
     private Paint trackPaint;
     private Paint progressPaint;
     private Paint percentPaint;

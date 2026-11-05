@@ -3,11 +3,9 @@ package com.example.todolist.activity;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.View;
 import android.widget.Toast;
 
@@ -15,19 +13,16 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.PopupMenu;
 
 import com.example.todolist.R;
+import com.example.todolist.SharedPrefManager.SharedPrefManager;
+import com.example.todolist.activity.Supabase.SupabaseAuth;
+import com.example.todolist.activity.Supabase.SupabaseRepository;
 import com.example.todolist.databinding.ActivityEditTaskBinding;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 
 public class EditTaskActivity extends BaseActivity {
 
@@ -265,60 +260,55 @@ public class EditTaskActivity extends BaseActivity {
         getOnBackPressedDispatcher().addCallback(this, new androidx.activity.OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                updateTaskInFirebase(false);
+                updateTaskInSupabase(false);
                 finish();
             }
         });
 
-        // Clear Task Title
         binding.btnClearTitle.setOnClickListener(v -> {
             binding.edtTaskName.setText("");
             binding.edtTaskName.requestFocus();
         });
 
-        // Top Save & Bottom Save
-        binding.btnTopSave.setOnClickListener(v -> updateTaskInFirebase(true));
-        binding.btnEditTask.setOnClickListener(v -> updateTaskInFirebase(true));
+        binding.btnTopSave.setOnClickListener(v -> updateTaskInSupabase(true));
+        binding.btnEditTask.setOnClickListener(v -> updateTaskInSupabase(true));
 
-        // Trash Delete at top and bottom
         binding.btnHeaderDelete.setOnClickListener(v -> deleteTask());
         binding.btnDeleteTask.setOnClickListener(v -> deleteTask());
 
-        // Category Cards Selection
         binding.cardCategoryWork.setOnClickListener(v -> {
             updateCategoryUI("Work");
-            updateTaskInFirebase(false);
+            updateTaskInSupabase(false);
         });
 
         binding.cardCategoryPersonal.setOnClickListener(v -> {
             updateCategoryUI("Personal");
-            updateTaskInFirebase(false);
+            updateTaskInSupabase(false);
         });
 
         binding.cardCategoryDesign.setOnClickListener(v -> {
             updateCategoryUI("Design");
-            updateTaskInFirebase(false);
+            updateTaskInSupabase(false);
         });
 
         binding.cardCategoryHealth.setOnClickListener(v -> {
             updateCategoryUI("Health");
-            updateTaskInFirebase(false);
+            updateTaskInSupabase(false);
         });
 
-        // Priority Chips Selection
         binding.chipPriorityLow.setOnClickListener(v -> {
             updatePriorityUI("Low");
-            updateTaskInFirebase(false);
+            updateTaskInSupabase(false);
         });
 
         binding.chipPriorityMedium.setOnClickListener(v -> {
             updatePriorityUI("Medium");
-            updateTaskInFirebase(false);
+            updateTaskInSupabase(false);
         });
 
         binding.chipPriorityHigh.setOnClickListener(v -> {
             updatePriorityUI("High");
-            updateTaskInFirebase(false);
+            updateTaskInSupabase(false);
         });
 
         // Schedule: Due Date Picker
@@ -370,7 +360,7 @@ public class EditTaskActivity extends BaseActivity {
 
             selectedDate = String.format(Locale.getDefault(), "%02d/%02d/%04d", day, month + 1, year);
             setupDateUI(selectedDate);
-            updateTaskInFirebase(false);
+            updateTaskInSupabase(false);
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
         datePickerDialog.show();
     }
@@ -384,7 +374,7 @@ public class EditTaskActivity extends BaseActivity {
 
             selectedTime = String.format(Locale.getDefault(), "%02d:%02d %s", hourIn12, minute, amPm);
             binding.txtTaskTime.setText(selectedTime);
-            updateTaskInFirebase(false);
+            updateTaskInSupabase(false);
         }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), false);
         timePickerDialog.show();
     }
@@ -416,7 +406,7 @@ public class EditTaskActivity extends BaseActivity {
         return timeStr;
     }
 
-    private void updateTaskInFirebase(boolean finishAfterSave) {
+    private void updateTaskInSupabase(boolean finishAfterSave) {
         String taskName = binding.edtTaskName.getText().toString().trim();
         String description = binding.edtDescription.getText().toString().trim();
 
@@ -427,13 +417,6 @@ public class EditTaskActivity extends BaseActivity {
             return;
         }
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null) {
-            if (finishAfterSave) {
-                Toast.makeText(this, "Please log in first", Toast.LENGTH_SHORT).show();
-            }
-            return;
-        }
         if (taskId == null || taskId.trim().isEmpty()) {
             if (finishAfterSave) {
                 Toast.makeText(this, "Task ID not found", Toast.LENGTH_SHORT).show();
@@ -441,50 +424,43 @@ public class EditTaskActivity extends BaseActivity {
             return;
         }
 
-        DatabaseReference taskRef = FirebaseDatabase.getInstance()
-                .getReference("Users")
-                .child(user.getUid())
-                .child("Tasks")
-                .child(taskId);
+        String accessToken = SharedPrefManager.getInstance(this).getString("access_token");
+        if (accessToken == null || accessToken.isEmpty()) {
+            accessToken = SupabaseAuth.getAccessToken(this);
+        }
 
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("taskId", taskId);
-        updates.put("taskName", taskName);
-        updates.put("description", description);
-        if (!TextUtils.isEmpty(selectedDate)) {
-            updates.put("date", selectedDate);
-        }
-        if (!TextUtils.isEmpty(selectedTime)) {
-            updates.put("time", selectedTime);
-        }
-        updates.put("category", selectedCategory);
-        updates.put("priority", selectedPriority);
-        if (categoryColor != null) {
-            updates.put("categoryColor", categoryColor);
-        }
-        if (categoryIcon != null) {
-            updates.put("categoryIcon", categoryIcon);
-        }
-        updates.put("completed", completed);
+        new SupabaseRepository().updateTask(
+                taskId,
+                accessToken,
+                taskName,
+                description,
+                selectedDate,
+                selectedTime,
+                selectedCategory,
+                categoryColor,
+                categoryIcon,
+                selectedPriority,
+                completed,
+                new SupabaseRepository.TaskCallback() {
+                    @Override
+                    public void onSuccess(String taskId) {
+                        if (finishAfterSave) {
+                            Toast.makeText(EditTaskActivity.this, "Task updated successfully", Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
+                    }
 
-        taskRef.updateChildren(updates).addOnSuccessListener(unused -> {
-            if (finishAfterSave) {
-                Toast.makeText(this, "Task updated successfully", Toast.LENGTH_SHORT).show();
-                finish();
-            }
-        }).addOnFailureListener(e -> {
-            if (finishAfterSave) {
-                Toast.makeText(this, "Update failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        });
+                    @Override
+                    public void onError(String error) {
+                        if (finishAfterSave) {
+                            Toast.makeText(EditTaskActivity.this, "Update failed: " + error, Toast.LENGTH_LONG).show();
+                        }
+                    }
+                }
+        );
     }
 
     private void deleteTask() {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null) {
-            Toast.makeText(this, "Please log in first", Toast.LENGTH_SHORT).show();
-            return;
-        }
         if (taskId == null || taskId.trim().isEmpty()) {
             Toast.makeText(this, "Task ID not found", Toast.LENGTH_SHORT).show();
             return;
@@ -495,20 +471,22 @@ public class EditTaskActivity extends BaseActivity {
                 .setMessage("Are you sure you want to delete this task?")
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                 .setPositiveButton("Delete", (dialog, which) -> {
-                    DatabaseReference taskRef = FirebaseDatabase.getInstance()
-                            .getReference("Users")
-                            .child(user.getUid())
-                            .child("Tasks")
-                            .child(taskId);
+                    String accessToken = SharedPrefManager.getInstance(this).getString("access_token");
+        if (accessToken == null || accessToken.isEmpty()) {
+            accessToken = SupabaseAuth.getAccessToken(this);
+        }
+                    new SupabaseRepository().deleteTask(taskId, accessToken, new SupabaseRepository.TaskCallback() {
+                        @Override
+                        public void onSuccess(String taskId) {
+                            Toast.makeText(EditTaskActivity.this, "Task deleted", Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
 
-                    taskRef.removeValue()
-                            .addOnSuccessListener(unused -> {
-                                Toast.makeText(this, "Task deleted", Toast.LENGTH_SHORT).show();
-                                finish();
-                            })
-                            .addOnFailureListener(e -> {
-                                Toast.makeText(this, "Delete failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                            });
+                        @Override
+                        public void onError(String error) {
+                            Toast.makeText(EditTaskActivity.this, "Delete failed: " + error, Toast.LENGTH_LONG).show();
+                        }
+                    });
                 })
                 .show();
     }

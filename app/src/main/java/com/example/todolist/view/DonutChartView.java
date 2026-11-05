@@ -53,7 +53,7 @@ public class DonutChartView extends View {
     }
 
     private final List<Slice> slices = new ArrayList<>();
-    private String centerCount = "48";
+    private String centerCount = "0";
     private String centerLabel = "ALL TASKS";
 
     private Paint arcPaint;
@@ -99,17 +99,13 @@ public class DonutChartView extends View {
         labelPaint.setLetterSpacing(0.08f);
 
         arcBounds = new RectF();
-
-        loadDefaultSample();
+        centerCount = "0";
+        centerLabel = "ALL TASKS";
     }
 
     public void loadDefaultSample() {
         slices.clear();
-        slices.add(new Slice("Work", Color.parseColor("#8B5CF6"), 22));
-        slices.add(new Slice("Design", Color.parseColor("#C084FC"), 12));
-        slices.add(new Slice("Personal", Color.parseColor("#06B6D4"), 9));
-        slices.add(new Slice("Health", Color.parseColor("#10B981"), 5));
-        centerCount = "48";
+        centerCount = "0";
         centerLabel = "ALL TASKS";
         invalidate();
     }
@@ -149,7 +145,6 @@ public class DonutChartView extends View {
         float gapAngle = slices.size() > 1 ? 3f : 0f;
 
         if (total <= 0f) {
-            // Draw empty state circle
             arcPaint.setColor(Color.parseColor("#334155"));
             canvas.drawArc(arcBounds, 0, 360, false, arcPaint);
         } else {

@@ -261,7 +261,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:fontFamily="sans-serif-medium"
-                    android:text="48"
+                    android:text="0"
                     android:textColor="@color/white"
                     android:textSize="26sp"
                     android:textStyle="bold" />
@@ -282,7 +282,7 @@
                         android:fontFamily="sans-serif-medium"
                         android:paddingHorizontal="7dp"
                         android:paddingVertical="2dp"
-                        android:text="↗ +12%"
+                        android:text="0%"
                         android:textColor="#C084FC"
                         android:textSize="10sp"
                         android:textStyle="bold" />
@@ -340,7 +340,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:fontFamily="sans-serif-medium"
-                    android:text="7"
+                    android:text="0"
                     android:textColor="@color/white"
                     android:textSize="26sp"
                     android:textStyle="bold" />
@@ -361,7 +361,7 @@
                         android:fontFamily="sans-serif-medium"
                         android:paddingHorizontal="7dp"
                         android:paddingVertical="2dp"
-                        android:text="● On track"
+                        android:text="● Caught up"
                         android:textColor="@color/white"
                         android:textSize="10sp"
                         android:textStyle="bold" />
@@ -372,7 +372,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="6dp"
                         android:fontFamily="sans-serif"
-                        android:text="3 due today"
+                        android:text="0 due today"
                         android:textColor="@color/text_muted"
                         android:textSize="10sp" />
                 </LinearLayout>
@@ -428,7 +428,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:fontFamily="sans-serif-medium"
-                    android:text="85.4%"
+                    android:text="0%"
                     android:textColor="@color/white"
                     android:textSize="26sp"
                     android:textStyle="bold" />
@@ -441,7 +441,7 @@
                     android:layout_height="5dp"
                     android:layout_marginTop="8dp"
                     android:max="100"
-                    android:progress="85"
+                    android:progress="0"
                     android:progressDrawable="@drawable/progress_bar_horizontal" />
 
                 <!-- Subtext: Target 80%   +5.4% -->
@@ -466,7 +466,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-medium"
-                        android:text="+5.4%"
+                        android:text="0%"
                         android:textColor="#C084FC"
                         android:textSize="10sp"
                         android:textStyle="bold" />
@@ -527,7 +527,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-medium"
-                        android:text="14.2"
+                        android:text="0.0"
                         android:textColor="@color/white"
                         android:textSize="26sp"
                         android:textStyle="bold" />
@@ -559,7 +559,7 @@
                         android:fontFamily="sans-serif-medium"
                         android:paddingHorizontal="7dp"
                         android:paddingVertical="2dp"
-                        android:text="⏱ 2.3h / day"
+                        android:text="⏱ 0.0h / day"
                         android:textColor="#C084FC"
                         android:textSize="10sp"
                         android:textStyle="bold" />
@@ -676,7 +676,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
                         android:fontFamily="sans-serif"
-                        android:text="41 completed tasks this week"
+                        android:text="0 completed tasks this week"
                         android:textColor="@color/text_muted"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -691,7 +691,7 @@
                     android:fontFamily="sans-serif-medium"
                     android:paddingHorizontal="10dp"
                     android:paddingVertical="4dp"
-                    android:text="⚡ Peak: Thursday"
+                    android:text="No activity yet"
                     android:textColor="#C084FC"
                     android:textSize="11sp"
                     android:textStyle="bold" />
@@ -796,16 +796,17 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="4dp"
                         android:fontFamily="sans-serif-medium"
-                        android:text="9"
+                        android:text="0"
                         android:textColor="@color/white"
                         android:textSize="11sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:visibility="gone" />
 
                     <View
                         android:id="@+id/barThu"
                         android:layout_width="28dp"
-                        android:layout_height="96dp"
-                        android:background="@drawable/bg_bar_peak" />
+                        android:layout_height="12dp"
+                        android:background="@drawable/bg_bar_inactive" />
 
                     <TextView
                         android:id="@+id/lblThu"
@@ -814,7 +815,7 @@
                         android:layout_marginTop="8dp"
                         android:fontFamily="sans-serif-medium"
                         android:text="Thu"
-                        android:textColor="#C084FC"
+                        android:textColor="@color/text_muted"
                         android:textSize="11sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -938,7 +939,7 @@
                     android:ellipsize="end"
                     android:fontFamily="sans-serif-medium"
                     android:maxLines="1"
-                    android:text="Consistency S..."
+                    android:text="Consistency Streak"
                     android:textColor="@color/white"
                     android:textSize="14sp"
                     android:textStyle="bold" />
@@ -951,7 +952,7 @@
                     android:ellipsize="end"
                     android:fontFamily="sans-serif"
                     android:maxLines="1"
-                    android:text="Only 2 more days to beat ..."
+                    android:text="Complete a task today to start your streak!"
                     android:textColor="@color/text_muted"
                     android:textSize="11sp" />
             </LinearLayout>
@@ -965,7 +966,7 @@
                 android:background="@drawable/bg_streak_circle"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
-                android:text="5\nDays"
+                android:text="0\nDays"
                 android:textColor="@color/white"
                 android:textSize="9sp"
                 android:textStyle="bold" />

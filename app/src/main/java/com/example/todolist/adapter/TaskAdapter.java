@@ -13,16 +13,15 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.todolist.R;
+import com.example.todolist.SharedPrefManager.SharedPrefManager;
+import com.example.todolist.activity.Supabase.SupabaseAuth;
 import com.example.todolist.activity.EditTaskActivity;
+import com.example.todolist.activity.Supabase.SupabaseRepository;
 import com.example.todolist.activity.TaskDetail;
 import com.example.todolist.databinding.BottomSheetTaskActionsBinding;
 import com.example.todolist.databinding.TaskCardBinding;
 import com.example.todolist.model.TaskModel;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 
@@ -110,14 +109,12 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             boolean newStatus = !taskModel.isCompleted();
             binding.radioCompleted.setChecked(newStatus);
             taskModel.setCompleted(newStatus);
-            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-            if (user != null && taskModel.getTaskId() != null) {
-                DatabaseReference taskRef = FirebaseDatabase.getInstance()
-                        .getReference("Users")
-                        .child(user.getUid())
-                        .child("Tasks")
-                        .child(taskModel.getTaskId());
-                taskRef.child("completed").setValue(newStatus);
+            if (taskModel.getTaskId() != null) {
+                String token = SharedPrefManager.getInstance(v.getContext()).getString("access_token");
+                if (token.isEmpty()) {
+                    token = SupabaseAuth.getAccessToken(v.getContext());
+                }
+                new SupabaseRepository().updateTaskCompleted(taskModel.getTaskId(), token, newStatus, null);
             }
         });
 
@@ -214,20 +211,27 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                 .setMessage("Are you sure you want to delete \"" + (taskModel.getTaskName() != null ? taskModel.getTaskName() : "this task") + "\"?")
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                 .setPositiveButton("Delete", (dialog, which) -> {
-                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                    if (user != null && taskModel.getTaskId() != null) {
-                        FirebaseDatabase.getInstance()
-                                .getReference("Users")
-                                .child(user.getUid())
-                                .child("Tasks")
-                                .child(taskModel.getTaskId())
-                                .removeValue()
-                                .addOnSuccessListener(unused ->
-                                        Toast.makeText(context, "Task deleted successfully", Toast.LENGTH_SHORT).show()
-                                )
-                                .addOnFailureListener(e ->
-                                        Toast.makeText(context, "Delete failed: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-                                );
+                    if (taskModel.getTaskId() != null) {
+                        String token = SharedPrefManager.getInstance(context).getString("access_token");
+                        if (token.isEmpty()) {
+                            token = SupabaseAuth.getAccessToken(context);
+                        }
+                        int pos = taskModels.indexOf(taskModel);
+                        new SupabaseRepository().deleteTask(taskModel.getTaskId(), token, new SupabaseRepository.TaskCallback() {
+                            @Override
+                            public void onSuccess(String taskId) {
+                                if (pos != -1 && pos < taskModels.size()) {
+                                    taskModels.remove(pos);
+                                    notifyItemRemoved(pos);
+                                }
+                                Toast.makeText(context, "Task deleted successfully", Toast.LENGTH_SHORT).show();
+                            }
+
+                            @Override
+                            public void onError(String error) {
+                                Toast.makeText(context, "Delete failed: " + error, Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
                 })
                 .show();

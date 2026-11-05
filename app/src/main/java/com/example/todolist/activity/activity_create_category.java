@@ -18,10 +18,6 @@ import com.example.todolist.R;
 import com.example.todolist.activity.home.ItemAdd_Category;
 import com.example.todolist.databinding.ActivityCreateCategoryBinding;
 import com.example.todolist.model.CategoryModel;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 public class activity_create_category extends BaseActivity {
     private ActivityCreateCategoryBinding binding;
@@ -152,22 +148,9 @@ public class activity_create_category extends BaseActivity {
             binding.edtCategoryName.setError("Enter category name");
             return;
         }
-        saveCategoryToFirebase(name, selectedIcon, selectedColor);
-    }
-    private void saveCategoryToFirebase(String name, int icon, String color) {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        DatabaseReference categoryRef = FirebaseDatabase.getInstance()
-                .getReference("Users")
-                .child(user.getUid())
-                .child("Categories");
-
-        String categoryId = categoryRef.push().getKey();
-        CategoryModel category = new CategoryModel(name, icon, color);
-        categoryRef.child(categoryId).setValue(category).addOnSuccessListener(unused -> {
-            ItemAdd_Category.categoryList.add(category);
-            Toast.makeText(this, "Category saved successfully", Toast.LENGTH_SHORT).show();
-            finish();
-        }).addOnFailureListener(error ->
-                Toast.makeText(this, "Error: " + error.getMessage(), Toast.LENGTH_LONG).show());
+        CategoryModel category = new CategoryModel(name, selectedIcon, selectedColor);
+        ItemAdd_Category.categoryList.add(category);
+        Toast.makeText(this, "Category saved successfully", Toast.LENGTH_SHORT).show();
+        finish();
     }
 }

@@ -12,8 +12,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
-import com.example.todolist.SupabaseAuth;
-import com.example.todolist.SupabaseClient;
+import com.example.todolist.activity.Supabase.SupabaseAuth;
+import com.example.todolist.activity.Supabase.SupabaseClient;
 import com.example.todolist.databinding.UserNameChangeDialogBoxBinding;
 import com.google.gson.JsonObject;
 
@@ -143,133 +143,87 @@ public class ChangeUserNameDialog extends DialogFragment {
                 JSON
         );
 
-        String url = SupabaseClient.SUPABASE_URL
-                + "/rest/v1/profiles?id=eq."
-                + userId;
+        attemptUpdateUsername(newName, userId, accessToken, body, 0);
+    }
 
+    private void attemptUpdateUsername(
+            String newName,
+            String userId,
+            String accessToken,
+            RequestBody body,
+            int tableIdx
+    ) {
+        String[] tables = new String[]{"profile", "profiles"};
+        if (tableIdx >= tables.length) {
+            if (!isAdded()) return;
+            requireActivity().runOnUiThread(() -> {
+                if (binding != null) binding.btnEditTask.setEnabled(true);
+                Toast.makeText(requireContext(), "Database update failed", Toast.LENGTH_LONG).show();
+            });
+            return;
+        }
+
+        String url = SupabaseClient.SUPABASE_URL + "/rest/v1/" + tables[tableIdx] + "?id=eq." + userId;
         Request request = new Request.Builder()
                 .url(url)
-                .addHeader(
-                        "apikey",
-                        SupabaseClient.SUPABASE_KEY
-                )
-                .addHeader(
-                        "Authorization",
-                        "Bearer " + accessToken
-                )
-                .addHeader(
-                        "Content-Type",
-                        "application/json"
-                )
-                .addHeader(
-                        "Prefer",
-                        "return=minimal"
-                )
+                .addHeader("apikey", SupabaseClient.SUPABASE_KEY)
+                .addHeader("Authorization", "Bearer " + accessToken)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Prefer", "return=minimal")
                 .patch(body)
                 .build();
 
-        SupabaseClient.client.newCall(request)
-                .enqueue(new Callback() {
+        SupabaseClient.client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                if (tableIdx + 1 < tables.length) {
+                    attemptUpdateUsername(newName, userId, accessToken, body, tableIdx + 1);
+                    return;
+                }
+                if (!isAdded()) return;
+                requireActivity().runOnUiThread(() -> {
+                    if (binding != null) binding.btnEditTask.setEnabled(true);
+                    Toast.makeText(requireContext(), "Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
+            }
 
-                    @Override
-                    public void onFailure(
-                            @NonNull Call call,
-                            @NonNull IOException e
-                    ) {
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                boolean success = response.isSuccessful();
+                String responseBody = response.body() != null ? response.body().string() : "";
+                response.close();
 
-                        if (!isAdded()) {
-                            return;
-                        }
-
-                        requireActivity().runOnUiThread(() -> {
-
-                            if (binding == null) {
-                                return;
-                            }
-
-                            binding.btnEditTask.setEnabled(true);
-
-                            Toast.makeText(
-                                    requireContext(),
-                                    "Failed: " + e.getMessage(),
-                                    Toast.LENGTH_LONG
-                            ).show();
-                        });
+                if (!success && (responseBody.contains("PGRST205") || response.code() == 404)) {
+                    if (tableIdx + 1 < tables.length) {
+                        attemptUpdateUsername(newName, userId, accessToken, body, tableIdx + 1);
+                        return;
                     }
+                }
 
-                    @Override
-                    public void onResponse(
-                            @NonNull Call call,
-                            @NonNull Response response
-                    ) throws IOException {
+                if (!isAdded()) return;
+                requireActivity().runOnUiThread(() -> {
+                    if (binding == null) return;
+                    binding.btnEditTask.setEnabled(true);
 
-                        boolean success =
-                                response.isSuccessful();
+                    if (success) {
+                        requireContext()
+                                .getSharedPreferences("SupabaseSession", Context.MODE_PRIVATE)
+                                .edit()
+                                .putString("username", newName)
+                                .apply();
 
-                        String errorMessage =
-                                response.message();
+                        Bundle result = new Bundle();
+                        result.putString(BUNDLE_USER_NAME, newName);
+                        getParentFragmentManager().setFragmentResult(REQUEST_KEY, result);
 
-                        response.close();
-
-                        if (!isAdded()) {
-                            return;
-                        }
-
-                        requireActivity().runOnUiThread(() -> {
-
-                            if (binding == null) {
-                                return;
-                            }
-
-                            binding.btnEditTask.setEnabled(true);
-
-                            if (success) {
-
-                                requireContext()
-                                        .getSharedPreferences(
-                                                "SupabaseSession",
-                                                Context.MODE_PRIVATE
-                                        )
-                                        .edit()
-                                        .putString(
-                                                "username",
-                                                newName
-                                        )
-                                        .apply();
-
-                                Bundle result = new Bundle();
-
-                                result.putString(
-                                        BUNDLE_USER_NAME,
-                                        newName
-                                );
-
-                                getParentFragmentManager()
-                                        .setFragmentResult(
-                                                REQUEST_KEY,
-                                                result
-                                        );
-
-                                Toast.makeText(
-                                        requireContext(),
-                                        "Username updated",
-                                        Toast.LENGTH_SHORT
-                                ).show();
-
-                                dismiss();
-
-                            } else {
-
-                                Toast.makeText(
-                                        requireContext(),
-                                        "Database update failed: "
-                                                + errorMessage,
-                                        Toast.LENGTH_LONG
-                                ).show();
-                            }
-                        });
+                        Toast.makeText(requireContext(), "Username updated", Toast.LENGTH_SHORT).show();
+                        dismiss();
+                    } else {
+                        Toast.makeText(requireContext(), "Database update failed", Toast.LENGTH_LONG).show();
                     }
                 });
+            }
+        });
     }
 
     @Override

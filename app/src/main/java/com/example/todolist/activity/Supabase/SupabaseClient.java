@@ -1,4 +1,4 @@
-package com.example.todolist;
+package com.example.todolist.activity.Supabase;
 
 import okhttp3.OkHttpClient;
 

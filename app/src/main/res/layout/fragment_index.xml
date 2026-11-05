@@ -486,13 +486,6 @@
                 </FrameLayout>
             </LinearLayout>
 
-            <!-- Completed Tasks Input Field Component -->
-            <com.example.todolist.TaskInputField
-                android:id="@+id/TaskCompleted"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp" />
-
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

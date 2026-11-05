@@ -11,12 +11,11 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.todolist.R;
+import com.example.todolist.SharedPrefManager.SharedPrefManager;
+import com.example.todolist.activity.Supabase.SupabaseAuth;
+import com.example.todolist.activity.Supabase.SupabaseRepository;
 import com.example.todolist.databinding.ItemCalendarTimelineTaskBinding;
 import com.example.todolist.model.TaskModel;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 
@@ -159,20 +158,17 @@ public class CalendarTaskAdapter extends RecyclerView.Adapter<CalendarTaskAdapte
             binding.viewTimelineDot.setBackgroundResource(R.drawable.bg_timeline_dot_active);
         }
 
-        // Checkbox click listener to toggle Firebase completed state
         binding.btnCheckTask.setOnClickListener(v -> {
             boolean newStatus = !task.isCompleted();
             task.setCompleted(newStatus);
             notifyItemChanged(holder.getAdapterPosition());
 
-            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-            if (user != null && task.getTaskId() != null) {
-                DatabaseReference taskRef = FirebaseDatabase.getInstance()
-                        .getReference("Users")
-                        .child(user.getUid())
-                        .child("Tasks")
-                        .child(task.getTaskId());
-                taskRef.child("completed").setValue(newStatus);
+            if (task.getTaskId() != null) {
+                String token = SharedPrefManager.getInstance(v.getContext()).getString("access_token");
+                if (token.isEmpty()) {
+                    token = SupabaseAuth.getAccessToken(v.getContext());
+                }
+                new SupabaseRepository().updateTaskCompleted(task.getTaskId(), token, newStatus, null);
             }
 
             if (statusChangeListener != null) {

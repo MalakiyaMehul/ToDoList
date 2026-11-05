@@ -18,21 +18,17 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.todolist.R;
-import com.example.todolist.activity.EditTaskActivity;
+import com.example.todolist.SharedPrefManager.SharedPrefManager;
+import com.example.todolist.activity.Supabase.SupabaseAuth;
+import com.example.todolist.activity.Supabase.SupabaseRepository;
 import com.example.todolist.activity.TaskDetail;
 import com.example.todolist.adapter.CalendarTaskAdapter;
 import com.example.todolist.databinding.FragmentCalendarBinding;
 import com.example.todolist.model.TaskModel;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Calendar;
 import java.util.Locale;
 
@@ -44,8 +40,6 @@ public class CalendarFragment extends Fragment {
     private final ArrayList<TaskModel> allTasks = new ArrayList<>();
     private final ArrayList<TaskModel> visibleTasks = new ArrayList<>();
     private CalendarTaskAdapter adapter;
-    private DatabaseReference databaseReference;
-    private ValueEventListener tasksListener;
 
     public CalendarFragment() {
         super(R.layout.fragment_calendar);
@@ -63,7 +57,7 @@ public class CalendarFragment extends Fragment {
         buildDays();
         loadSavedAvatar();
         setupListeners();
-        loadTasksFromFirebase();
+        loadTasks();
 
         return binding.getRoot();
     }
@@ -238,46 +232,38 @@ public class CalendarFragment extends Fragment {
         return count;
     }
 
-    private void loadTasksFromFirebase() {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null) {
-            if (isAdded()) {
-                Toast.makeText(requireContext(), "Please log in", Toast.LENGTH_SHORT).show();
-            }
+    private void loadTasks() {
+        if (!isAdded()) return;
+
+        SharedPrefManager prefManager = SharedPrefManager.getInstance(requireContext());
+        String uid = prefManager.getString("user_id");
+        if (uid.isEmpty()) {
+            uid = SupabaseAuth.getUserId(requireContext());
+        }
+        if (uid == null || uid.isEmpty()) {
             return;
         }
 
-        String uid = user.getUid();
-        databaseReference = FirebaseDatabase.getInstance().getReference("Users").child(uid).child("Tasks");
-
-        if (tasksListener != null) {
-            databaseReference.removeEventListener(tasksListener);
+        String accessToken = prefManager.getString("access_token");
+        if (accessToken.isEmpty()) {
+            accessToken = SupabaseAuth.getAccessToken(requireContext());
         }
 
-        tasksListener = new ValueEventListener() {
+        SupabaseRepository repository = new SupabaseRepository();
+        repository.getTasks(uid, accessToken, new SupabaseRepository.GetTasksCallback() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
+            public void onSuccess(List<TaskModel> tasks) {
                 if (!isAdded() || binding == null) return;
-
                 allTasks.clear();
-                for (DataSnapshot child : snapshot.getChildren()) {
-                    TaskModel task = child.getValue(TaskModel.class);
-                    if (task != null) {
-                        allTasks.add(task);
-                    }
-                }
+                allTasks.addAll(tasks);
                 buildDays();
                 filterTasks();
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                if (isAdded()) {
-                    Toast.makeText(requireContext(), error.getMessage(), Toast.LENGTH_LONG).show();
-                }
+            public void onError(String error) {
             }
-        };
-        databaseReference.addValueEventListener(tasksListener);
+        });
     }
 
     private void filterTasks() {
@@ -405,14 +391,12 @@ public class CalendarFragment extends Fragment {
     public void onResume() {
         super.onResume();
         loadSavedAvatar();
+        loadTasks();
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        if (databaseReference != null && tasksListener != null) {
-            databaseReference.removeEventListener(tasksListener);
-        }
         binding = null;
     }
 }

@@ -7,22 +7,16 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 
 import com.example.todolist.R;
+import com.example.todolist.SharedPrefManager.SharedPrefManager;
+import com.example.todolist.activity.Supabase.SupabaseAuth;
+import com.example.todolist.activity.Supabase.SupabaseRepository;
 import com.example.todolist.databinding.ActivityTaskDetailBinding;
 import com.example.todolist.model.TaskModel;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -44,9 +38,6 @@ public class TaskDetail extends BaseActivity {
     private String categoryIcon = "";
     private boolean completed = false;
 
-    private DatabaseReference taskRef;
-    private ValueEventListener taskListener;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,7 +48,6 @@ public class TaskDetail extends BaseActivity {
         setupUI();
         loadSavedAvatar();
         setupListeners();
-        listenToFirebaseUpdates();
     }
 
     private void extractIntentData() {
@@ -266,32 +256,69 @@ public class TaskDetail extends BaseActivity {
         // Edit Task Button
         binding.btnEditTask.setOnClickListener(v -> openEditTaskActivity());
 
-        // Primary: Mark as Completed
         binding.btnMarkCompleted.setOnClickListener(v -> toggleCompletedState());
         binding.chkObjectiveIndicator.setOnClickListener(v -> toggleCompletedState());
 
-        // Reminder Switch Toggle
         binding.switchReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
             binding.txtReminderTitle.setText(isChecked ? "Pulse Reminder: Enabled" : "Pulse Reminder: Disabled");
         });
 
-        // Delete Task
         binding.btnDeleteTask.setOnClickListener(v -> confirmAndDeleteTask());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadTaskDetails();
+    }
+
+    private void loadTaskDetails() {
+        String uid = SharedPrefManager.getInstance(this).getString("user_id");
+        if (uid.isEmpty()) {
+            uid = SupabaseAuth.getUserId(this);
+        }
+        String token = SharedPrefManager.getInstance(this).getString("access_token");
+        if (token.isEmpty()) {
+            token = SupabaseAuth.getAccessToken(this);
+        }
+        if (uid == null || uid.isEmpty() || taskId == null || taskId.trim().isEmpty()) return;
+
+        new SupabaseRepository().getTasks(uid, token, new SupabaseRepository.GetTasksCallback() {
+            @Override
+            public void onSuccess(java.util.List<TaskModel> tasks) {
+                for (TaskModel model : tasks) {
+                    if (taskId.equals(model.getTaskId())) {
+                        taskName = model.getTaskName();
+                        description = model.getDescription();
+                        date = model.getDate();
+                        time = model.getTime();
+                        category = model.getCategory();
+                        priority = model.getPriority();
+                        categoryColor = model.getCategoryColor();
+                        categoryIcon = model.getCategoryIcon();
+                        completed = model.isCompleted();
+                        setupUI();
+                        break;
+                    }
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+            }
+        });
     }
 
     private void toggleCompletedState() {
         completed = !completed;
         updateCompletionUI();
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null && taskId != null && !taskId.trim().isEmpty()) {
-            FirebaseDatabase.getInstance()
-                    .getReference("Users")
-                    .child(user.getUid())
-                    .child("Tasks")
-                    .child(taskId)
-                    .child("completed")
-                    .setValue(completed);
+        if (taskId != null && !taskId.trim().isEmpty()) {
+            String token = SharedPrefManager.getInstance(this).getString("access_token");
+            if (token.isEmpty()) {
+                token = SupabaseAuth.getAccessToken(this);
+            }
+            new SupabaseRepository().updateTaskCompleted(taskId, token, completed, null);
         }
         Toast.makeText(this, completed ? "Task completed! 🎉" : "Task marked active", Toast.LENGTH_SHORT).show();
     }
@@ -317,71 +344,27 @@ public class TaskDetail extends BaseActivity {
                 .setMessage("Are you sure you want to delete this task?")
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                 .setPositiveButton("Delete", (dialog, which) -> {
-                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                    if (user != null && taskId != null && !taskId.trim().isEmpty()) {
-                        FirebaseDatabase.getInstance()
-                                .getReference("Users")
-                                .child(user.getUid())
-                                .child("Tasks")
-                                .child(taskId)
-                                .removeValue()
-                                .addOnSuccessListener(unused -> {
-                                    Toast.makeText(this, "Task deleted", Toast.LENGTH_SHORT).show();
-                                    finish();
-                                })
-                                .addOnFailureListener(e -> {
-                                    Toast.makeText(this, "Delete failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                                });
+                    if (taskId != null && !taskId.trim().isEmpty()) {
+                        String token = SharedPrefManager.getInstance(this).getString("access_token");
+                        if (token.isEmpty()) {
+                            token = SupabaseAuth.getAccessToken(this);
+                        }
+                        new SupabaseRepository().deleteTask(taskId, token, new SupabaseRepository.TaskCallback() {
+                            @Override
+                            public void onSuccess(String taskId) {
+                                Toast.makeText(TaskDetail.this, "Task deleted", Toast.LENGTH_SHORT).show();
+                                finish();
+                            }
+
+                            @Override
+                            public void onError(String error) {
+                                Toast.makeText(TaskDetail.this, "Delete failed: " + error, Toast.LENGTH_LONG).show();
+                            }
+                        });
                     }
                 })
                 .show();
     }
-
-    private void listenToFirebaseUpdates() {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null || taskId == null || taskId.trim().isEmpty()) return;
-
-        taskRef = FirebaseDatabase.getInstance()
-                .getReference("Users")
-                .child(user.getUid())
-                .child("Tasks")
-                .child(taskId);
-
-        taskListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!snapshot.exists()) {
-                    // Task was deleted
-                    if (!isFinishing()) {
-                        finish();
-                    }
-                    return;
-                }
-
-                TaskModel model = snapshot.getValue(TaskModel.class);
-                if (model != null) {
-                    taskName = model.getTaskName();
-                    description = model.getDescription();
-                    date = model.getDate();
-                    time = model.getTime();
-                    category = model.getCategory();
-                    priority = model.getPriority();
-                    categoryColor = model.getCategoryColor();
-                    categoryIcon = model.getCategoryIcon();
-                    completed = model.isCompleted();
-
-                    setupUI();
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-            }
-        };
-
-        taskRef.addValueEventListener(taskListener);
-    }
-
     private void loadSavedAvatar() {
         String savedAvatarUri = getSharedPreferences("UserProfile", Context.MODE_PRIVATE)
                 .getString("avatar_uri", null);
@@ -396,13 +379,5 @@ public class TaskDetail extends BaseActivity {
             } catch (Exception ignored) {}
         }
     }
-
-    @Override
-    protected void onDestroy() {
-        if (taskRef != null && taskListener != null) {
-            taskRef.removeEventListener(taskListener);
-            taskListener = null;
-        }
-        super.onDestroy();
-    }
 }
+

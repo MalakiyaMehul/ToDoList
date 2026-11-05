@@ -6,27 +6,13 @@ import android.text.InputType;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.example.todolist.InputField;
-import com.example.todolist.MainActivity;
 import com.example.todolist.R;
-import com.example.todolist.SupabaseAuth;
+import com.example.todolist.activity.Supabase.SupabaseAuth;
 import com.example.todolist.activity.home.HomeActivity;
 import com.example.todolist.databinding.ActivityLoginBinding;
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.api.ApiException;
-import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.gson.JsonObject;
 
 public class LoginActivity extends BaseActivity {
 
@@ -38,14 +24,6 @@ public class LoginActivity extends BaseActivity {
         EdgeToEdge.enable(this);
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        //auth = FirebaseAuth.getInstance();
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(
-                GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail()
-                .requestIdToken(getString(R.string.app_name))
-                .build();
-
-        //   googleSignInClient = GoogleSignIn.getClient(this, gso);
 
         InputField usernameField = binding.txtUserLogin;
         InputField passwordField = binding.edtPassword;
@@ -66,141 +44,64 @@ public class LoginActivity extends BaseActivity {
             );
         });
 
+        binding.txtForgotPassword.setOnClickListener(v -> {
+            Toast.makeText(this, "Password recovery feature", Toast.LENGTH_SHORT).show();
+        });
 
-
-      /*  googleSignInLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == RESULT_OK
-                            && result.getData() != null) {
-                        try {
-                            GoogleSignInAccount account =
-                                    GoogleSignIn.getSignedInAccountFromIntent(
-                                                    result.getData())
-                                            .getResult(ApiException.class);
-
-                            if (account != null && account.getIdToken() != null) {
-                                firebaseAuthWithGoogle(account.getIdToken());
-                            }
-
-                        } catch (ApiException e) {
-                            Toast.makeText(this,
-                                    "Google Login failed: " + e.getStatusCode(),
-                                    Toast.LENGTH_LONG).show();
-                        }
-                    }
-                });
+        binding.GoogleWithLogin.setOnClickListener(v -> {
+            Toast.makeText(this, "Google Sign-In", Toast.LENGTH_SHORT).show();
+        });
         binding.txtRegistration.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
             startActivity(intent);
             finish();
-        });*/
+        });
 
         binding.btnLogin.setOnClickListener(v -> {
-
             String username = binding.txtUserLogin.getText().toString().trim();
-
             String password = binding.edtPassword.getText().toString().trim();
 
             if (username.isEmpty() || password.isEmpty()) {
-
-                Toast.makeText(
-                        this,
-                        "Please fill all fields",
-                        Toast.LENGTH_SHORT
-                ).show();
-
+                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             String email = username.contains("@")
                     ? username
-                    : username.replaceAll("\\s+", "").toLowerCase()
-                      + "@todolist.com";
+                    : username.replaceAll("\\s+", "").toLowerCase() + "@todolist.com";
 
             binding.btnLogin.setEnabled(false);
 
-            SupabaseAuth.signIn(email, password,
-                    new SupabaseAuth.AuthCallback() {
+            SupabaseAuth.signIn(email, password, new SupabaseAuth.AuthCallback() {
+                @Override
+                public void onSuccess(JsonObject response) {
+                    String savedUsername = username.contains("@")
+                            ? username.substring(0, username.indexOf("@"))
+                            : username;
 
-                        @Override
-                        public void onSuccess(com.google.gson.JsonObject response) {
+                    SupabaseAuth.saveSession(
+                            LoginActivity.this,
+                            response,
+                            savedUsername
+                    );
 
-                            String savedUsername = username.contains("@")
-                                    ? username.substring(0, username.indexOf("@"))
-                                    : username;
-
-                            SupabaseAuth.saveSession(
-                                    LoginActivity.this,
-                                    response,
-                                    savedUsername
-                            );
-
-                            runOnUiThread(() -> {
-
-                                binding.btnLogin.setEnabled(true);
-
-                                Toast.makeText(
-                                        LoginActivity.this,
-                                        "Login successful",
-                                        Toast.LENGTH_SHORT
-                                ).show();
-
-                                Intent intent = new Intent(
-                                        LoginActivity.this,
-                                        HomeActivity.class
-                                );
-
-                                startActivity(intent);
-                                finish();
-                            });
-                        }
-
-                        @Override
-                        public void onError(String error) {
-
-                            runOnUiThread(() -> {
-
-                                binding.btnLogin.setEnabled(true);
-
-                                Toast.makeText(
-                                        LoginActivity.this,
-                                        "Login failed: " + error,
-                                        Toast.LENGTH_LONG
-                                ).show();
-                            });
-                        }
-                    });
-        });
-
-       /* binding.GoogleWithLogin.setOnClickListener(v -> {
-            googleSignInLauncher.launch(
-                    googleSignInClient.getSignInIntent());
-        });
-    }*/
-
-    /*private void firebaseAuthWithGoogle(String idToken) {
-        AuthCredential credential =
-                GoogleAuthProvider.getCredential(idToken, null);
-
-        auth.signInWithCredential(credential)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        Toast.makeText(this,
-                                "Google Login successful",
-                                Toast.LENGTH_SHORT).show();
-
-                        Intent intent = new Intent(
-                                LoginActivity.this, HomeActivity.class);
-
+                    runOnUiThread(() -> {
+                        binding.btnLogin.setEnabled(true);
+                        Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
                         startActivity(intent);
                         finish();
+                    });
+                }
 
-                    } else {
-                        Toast.makeText(this,
-                                "Google Login failed",
-                                Toast.LENGTH_LONG).show();
-                    }
-                });*/
+                @Override
+                public void onError(String error) {
+                    runOnUiThread(() -> {
+                        binding.btnLogin.setEnabled(true);
+                        Toast.makeText(LoginActivity.this, "Login failed: " + error, Toast.LENGTH_LONG).show();
+                    });
+                }
+            });
+        });
     }
 }

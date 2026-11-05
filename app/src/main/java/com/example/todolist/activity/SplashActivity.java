@@ -7,11 +7,9 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.animation.DecelerateInterpolator;
 
-import com.example.todolist.SupabaseAuth;
+import com.example.todolist.activity.Supabase.SupabaseAuth;
 import com.example.todolist.activity.home.HomeActivity;
 import com.example.todolist.databinding.ActivitySplashBinding;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 public class SplashActivity extends BaseActivity {
 
@@ -25,13 +23,10 @@ public class SplashActivity extends BaseActivity {
         binding = ActivitySplashBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Smooth neural index progress animation
         ObjectAnimator progressAnimator = ObjectAnimator.ofInt(binding.progressSyncing, "progress", 10, 100);
         progressAnimator.setDuration(1200);
         progressAnimator.setInterpolator(new DecelerateInterpolator());
         progressAnimator.start();
-
-        // If user already logged in with Firebase, automatically transition into Home
 
         if (SupabaseAuth.isLoggedIn(this)) {
 
@@ -52,14 +47,12 @@ public class SplashActivity extends BaseActivity {
             navHandler.postDelayed(autoNavRunnable, 1600);
         }
 
-        // Primary Action: Get Started -> Register
         binding.btnGetStarted.setOnClickListener(v -> {
             cancelAutoNav();
             Intent intent = new Intent(SplashActivity.this, RegisterActivity.class);
             startActivity(intent);
         });
 
-        // Secondary Action: Existing Account -> Login
         binding.btnSignIn.setOnClickListener(v -> {
             cancelAutoNav();
             Intent intent = new Intent(SplashActivity.this, LoginActivity.class);

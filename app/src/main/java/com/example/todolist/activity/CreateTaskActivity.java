@@ -12,16 +12,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.example.todolist.R;
+import com.example.todolist.SharedPrefManager.SharedPrefManager;
+import com.example.todolist.activity.Supabase.SupabaseAuth;
+import com.example.todolist.activity.Supabase.SupabaseRepository;
 import com.example.todolist.databinding.ActivityCreateTaskBinding;
-import com.example.todolist.model.TaskModel;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -276,34 +273,61 @@ public class CreateTaskActivity extends BaseActivity {
             return;
         }
 
-        boolean reminderEnabled = binding.switchPulseReminder.isChecked();
-
-        // Save to Firebase if authenticated
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
-            String uid = user.getUid();
-            DatabaseReference tasksRef = FirebaseDatabase.getInstance().getReference("Users").child(uid).child("Tasks");
-            String taskId = tasksRef.push().getKey();
-            if (taskId != null) {
-                TaskModel task = new TaskModel(
-                        taskId,
-                        title,
-                        details,
-                        selectedDate,
-                        selectedTime,
-                        selectedCategory,
-                        selectedCategoryColor,
-                        selectedCategoryIcon,
-                        selectedPriority,
-                        false
-                );
-                tasksRef.child(taskId).setValue(task);
-            }
+        SharedPrefManager prefManager = SharedPrefManager.getInstance(this);
+        String userId = prefManager.getString("user_id");
+        if (userId.isEmpty()) {
+            userId = SupabaseAuth.getUserId(this);
+        }
+        String accessToken = prefManager.getString("access_token");
+        if (accessToken.isEmpty()) {
+            accessToken = SupabaseAuth.getAccessToken(this);
         }
 
-        Toast.makeText(this, "Task \"" + title + "\" created successfully!", Toast.LENGTH_SHORT).show();
-        setResult(RESULT_OK);
-        finish();
+        if (userId == null || userId.isEmpty() || accessToken == null || accessToken.isEmpty()) {
+            Toast.makeText(this, "Please log in first", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String username = prefManager.getString("username");
+        if (username.isEmpty()) {
+            username = SupabaseAuth.getUsername(this);
+        }
+        if (username.isEmpty()) {
+            username = getSharedPreferences("UserProfile", android.content.Context.MODE_PRIVATE).getString("user_name", "");
+        }
+
+        binding.btnCreateTask.setEnabled(false);
+
+        SupabaseRepository repository = new SupabaseRepository();
+        String finalUserId = userId;
+        repository.saveTask(
+                finalUserId,
+                username,
+                accessToken,
+                title,
+                details,
+                selectedDate,
+                selectedTime,
+                selectedCategory,
+                selectedCategoryColor,
+                selectedCategoryIcon,
+                selectedPriority,
+                false,
+                new SupabaseRepository.TaskCallback() {
+                    @Override
+                    public void onSuccess(String taskId) {
+                        Toast.makeText(CreateTaskActivity.this, "Task created successfully", Toast.LENGTH_SHORT).show();
+                        setResult(RESULT_OK);
+                        finish();
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        binding.btnCreateTask.setEnabled(true);
+                        Toast.makeText(CreateTaskActivity.this, "Error: " + error, Toast.LENGTH_LONG).show();
+                    }
+                }
+        );
     }
 }
 

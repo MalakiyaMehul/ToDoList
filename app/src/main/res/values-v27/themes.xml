@@ -1,0 +1,20 @@
+<resources>
+
+    <style name="Base.Theme.ToDoList"
+        parent="Theme.Material3.DayNight.NoActionBar">
+
+        <item name="android:statusBarColor">#0B0B0E</item>
+
+        <item name="android:windowLightStatusBar">false</item>
+
+        <item name="android:windowBackground">#0B0B0E</item>
+
+        <item name="android:navigationBarColor">#0B0B0E</item>
+
+        <item name="android:windowLightNavigationBar">false</item>
+
+    </style>
+
+    <style name="Theme.ToDoList" parent="Base.Theme.ToDoList" />
+
+</resources>

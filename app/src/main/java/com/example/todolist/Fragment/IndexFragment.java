@@ -13,31 +13,25 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.example.todolist.R;
+import com.example.todolist.SharedPrefManager.SharedPrefManager;
+import com.example.todolist.activity.Supabase.SupabaseAuth;
 import com.example.todolist.TaskInputField;
-import com.example.todolist.activity.EditTaskActivity;
+import com.example.todolist.activity.Supabase.SupabaseRepository;
 import com.example.todolist.activity.TaskDetail;
 import com.example.todolist.adapter.TaskAdapter;
 import com.example.todolist.databinding.FragmentIndexBinding;
 import com.example.todolist.model.TaskModel;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 public class IndexFragment extends Fragment {
 
     private FragmentIndexBinding binding;
-    private DatabaseReference databaseReference;
     private TaskInputField taskInputField;
-    private TaskInputField taskCompletedInputField;
 
     private final ArrayList<TaskModel> todayTasks = new ArrayList<>();
     private final ArrayList<TaskModel> upcomingTasks = new ArrayList<>();
@@ -49,7 +43,6 @@ public class IndexFragment extends Fragment {
     private TaskAdapter allAdapter;
     private TaskAdapter completedAdapter;
 
-    private ValueEventListener tasksListener;
     private String currentTab = "Today";
 
     public IndexFragment() {
@@ -59,7 +52,6 @@ public class IndexFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentIndexBinding.inflate(inflater, container, false);
         taskInputField = binding.Task;
-        taskCompletedInputField = binding.TaskCompleted;
 
         todayAdapter = new TaskAdapter(todayTasks, this::openEditTask);
         upcomingAdapter = new TaskAdapter(upcomingTasks, this::openEditTask);
@@ -72,7 +64,7 @@ public class IndexFragment extends Fragment {
         loadSavedAvatar();
 
         updateTabUI(currentTab);
-        loadTasksFromFirebase();
+        loadTasks();
         return binding.getRoot();
     }
 
@@ -113,16 +105,14 @@ public class IndexFragment extends Fragment {
         }
 
         String displayName = "Elena";
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null && user.getDisplayName() != null && !user.getDisplayName().trim().isEmpty()) {
-            displayName = user.getDisplayName();
-        } else {
-            String savedName = requireContext()
-                    .getSharedPreferences("UserProfile", android.content.Context.MODE_PRIVATE)
-                    .getString("user_name", null);
-            if (savedName != null && !savedName.trim().isEmpty()) {
-                displayName = savedName;
-            }
+        String savedName = requireContext()
+                .getSharedPreferences("UserProfile", android.content.Context.MODE_PRIVATE)
+                .getString("user_name", null);
+        if (savedName == null || savedName.trim().isEmpty()) {
+            savedName = SharedPrefManager.getInstance(requireContext()).getString("username");
+        }
+        if (savedName != null && !savedName.trim().isEmpty()) {
+            displayName = savedName;
         }
         binding.txtGreeting.setText(timeGreeting + ", " + displayName);
     }
@@ -164,41 +154,26 @@ public class IndexFragment extends Fragment {
         binding.badgeTabCompleted.setBackgroundResource(isCompleted ? selectedBadgeBg : unselectedBadgeBg);
         binding.badgeTabCompleted.setTextColor(isCompleted ? white : muted);
 
-        // Content visibility according to selected tab
         if (isToday) {
-            // Show only Today's tasks; remove/hide completed tasks
             taskInputField.setVisibility(View.VISIBLE);
             taskInputField.setLabel("Today");
             taskInputField.setRecyclerViewAdapter(todayAdapter);
-
             binding.cardDeepFocus.setVisibility(View.VISIBLE);
-            taskCompletedInputField.setVisibility(View.GONE);
         } else if (isAll) {
-            // Show all active tasks and completed tasks
             taskInputField.setVisibility(View.VISIBLE);
             taskInputField.setLabel("All Tasks");
             taskInputField.setRecyclerViewAdapter(allAdapter);
-
             binding.cardDeepFocus.setVisibility(View.GONE);
-            taskCompletedInputField.setVisibility(View.VISIBLE);
-            taskCompletedInputField.setLabel("Completed");
-            taskCompletedInputField.setRecyclerViewAdapter(completedAdapter);
         } else if (isUpcoming) {
-            // Show only upcoming tasks
             taskInputField.setVisibility(View.VISIBLE);
             taskInputField.setLabel("Upcoming");
             taskInputField.setRecyclerViewAdapter(upcomingAdapter);
-
             binding.cardDeepFocus.setVisibility(View.GONE);
-            taskCompletedInputField.setVisibility(View.GONE);
         } else if (isCompleted) {
-            // Show only completed tasks
-            taskInputField.setVisibility(View.GONE);
+            taskInputField.setVisibility(View.VISIBLE);
+            taskInputField.setLabel("Completed");
+            taskInputField.setRecyclerViewAdapter(completedAdapter);
             binding.cardDeepFocus.setVisibility(View.GONE);
-
-            taskCompletedInputField.setVisibility(View.VISIBLE);
-            taskCompletedInputField.setLabel("Completed");
-            taskCompletedInputField.setRecyclerViewAdapter(completedAdapter);
         }
     }
 
@@ -240,7 +215,7 @@ public class IndexFragment extends Fragment {
     public void onResume() {
         super.onResume();
         loadSavedAvatar();
-        loadTasksFromFirebase();
+        loadTasks();
     }
 
     private boolean isSameDay(Calendar cal1, Calendar cal2) {
@@ -268,111 +243,98 @@ public class IndexFragment extends Fragment {
         return null;
     }
 
-    private void loadTasksFromFirebase() {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null) {
-            if (isAdded()) {
-                Toast.makeText(requireContext(), "Please login first", Toast.LENGTH_SHORT).show();
+    private void populateTasks(List<TaskModel> taskList) {
+        if (!isAdded() || binding == null) {
+            return;
+        }
+        todayTasks.clear();
+        upcomingTasks.clear();
+        allTasks.clear();
+        completedTasks.clear();
+
+        Calendar today = Calendar.getInstance();
+        today.set(Calendar.HOUR_OF_DAY, 0);
+        today.set(Calendar.MINUTE, 0);
+        today.set(Calendar.SECOND, 0);
+        today.set(Calendar.MILLISECOND, 0);
+
+        for (TaskModel taskModel : taskList) {
+            if (taskModel != null) {
+                if (taskModel.isCompleted()) {
+                    completedTasks.add(taskModel);
+                } else {
+                    allTasks.add(taskModel);
+                    Calendar taskCal = parseDate(taskModel.getDate());
+                    if (taskCal != null) {
+                        if (isSameDay(taskCal, today)) {
+                            todayTasks.add(taskModel);
+                        } else if (taskCal.after(today)) {
+                            upcomingTasks.add(taskModel);
+                        } else {
+                            todayTasks.add(taskModel);
+                        }
+                    } else {
+                        todayTasks.add(taskModel);
+                    }
+                }
             }
+        }
+
+        todayAdapter.notifyDataSetChanged();
+        upcomingAdapter.notifyDataSetChanged();
+        allAdapter.notifyDataSetChanged();
+        completedAdapter.notifyDataSetChanged();
+
+        binding.badgeTabToday.setText(String.valueOf(todayTasks.size()));
+        binding.badgeTabAll.setText(String.valueOf(allTasks.size()));
+        binding.badgeTabUpcoming.setText(String.valueOf(upcomingTasks.size()));
+        binding.badgeTabCompleted.setText(String.valueOf(completedTasks.size()));
+
+        binding.txtTaskSummary.setText(todayTasks.size() == 1
+                ? "You have 1 task scheduled for today"
+                : "You have " + todayTasks.size() + " tasks scheduled for today");
+
+        int totalCount = allTasks.size() + completedTasks.size();
+        int percent = totalCount > 0 ? (completedTasks.size() * 100) / totalCount : 0;
+        binding.txtProgressPercent.setText(percent + "%");
+        binding.progressDone.setProgress(percent);
+
+        updateTabUI(currentTab);
+    }
+
+    private void loadTasks() {
+        if (!isAdded()) return;
+
+        SharedPrefManager prefManager = SharedPrefManager.getInstance(requireContext());
+        String userId = prefManager.getString("user_id");
+        if (userId.isEmpty()) {
+            userId = SupabaseAuth.getUserId(requireContext());
+        }
+        String accessToken = prefManager.getString("access_token");
+        if (accessToken.isEmpty()) {
+            accessToken = SupabaseAuth.getAccessToken(requireContext());
+        }
+
+        if (userId == null || userId.isEmpty()) {
             return;
         }
 
-        String uId = user.getUid();
-        databaseReference = FirebaseDatabase.getInstance()
-                .getReference("Users")
-                .child(uId)
-                .child("Tasks");
-
-        if (tasksListener != null) {
-            databaseReference.removeEventListener(tasksListener);
-        }
-
-        tasksListener = new ValueEventListener() {
+        SupabaseRepository repository = new SupabaseRepository();
+        repository.getTasks(userId, accessToken, new SupabaseRepository.GetTasksCallback() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!isAdded() || binding == null) {
-                    return;
-                }
-                todayTasks.clear();
-                upcomingTasks.clear();
-                allTasks.clear();
-                completedTasks.clear();
-
-                Calendar today = Calendar.getInstance();
-                today.set(Calendar.HOUR_OF_DAY, 0);
-                today.set(Calendar.MINUTE, 0);
-                today.set(Calendar.SECOND, 0);
-                today.set(Calendar.MILLISECOND, 0);
-
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    TaskModel taskModel = dataSnapshot.getValue(TaskModel.class);
-                    if (taskModel != null) {
-                        if (taskModel.isCompleted()) {
-                            completedTasks.add(taskModel);
-                        } else {
-                            allTasks.add(taskModel);
-                            Calendar taskCal = parseDate(taskModel.getDate());
-                            if (taskCal != null) {
-                                if (isSameDay(taskCal, today)) {
-                                    todayTasks.add(taskModel);
-                                } else if (taskCal.after(today)) {
-                                    upcomingTasks.add(taskModel);
-                                } else {
-                                    // Overdue active tasks belong in Today's focus
-                                    todayTasks.add(taskModel);
-                                }
-                            } else {
-                                // Default undated tasks show up in today's active tasks
-                                todayTasks.add(taskModel);
-                            }
-                        }
-                    }
-                }
-
-                todayAdapter.notifyDataSetChanged();
-                upcomingAdapter.notifyDataSetChanged();
-                allAdapter.notifyDataSetChanged();
-                completedAdapter.notifyDataSetChanged();
-
-                // Update tab badge counters
-                binding.badgeTabToday.setText(String.valueOf(todayTasks.size()));
-                binding.badgeTabAll.setText(String.valueOf(allTasks.size()));
-                binding.badgeTabUpcoming.setText(String.valueOf(upcomingTasks.size()));
-                binding.badgeTabCompleted.setText(String.valueOf(completedTasks.size()));
-
-                // Update summary text
-                binding.txtTaskSummary.setText(todayTasks.size() == 1
-                        ? "You have 1 task scheduled for today"
-                        : "You have " + todayTasks.size() + " tasks scheduled for today");
-
-                // Update progress pill (done %)
-                int totalCount = allTasks.size() + completedTasks.size();
-                int percent = totalCount > 0 ? (completedTasks.size() * 100) / totalCount : 0;
-                binding.txtProgressPercent.setText(percent + "%");
-                binding.progressDone.setProgress(percent);
-
-                // Refresh active tab views
-                updateTabUI(currentTab);
+            public void onSuccess(List<TaskModel> tasks) {
+                populateTasks(tasks);
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                if (isAdded()) {
-                    Toast.makeText(requireContext(), "Failed to load tasks: " + error.getMessage(), Toast.LENGTH_LONG).show();
-                }
+            public void onError(String error) {
             }
-        };
-        databaseReference.addValueEventListener(tasksListener);
+        });
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-
-        if (databaseReference != null && tasksListener != null) {
-            databaseReference.removeEventListener(tasksListener);
-        }
-
         binding = null;
     }
 }

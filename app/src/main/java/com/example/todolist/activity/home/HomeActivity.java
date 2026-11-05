@@ -1,6 +1,8 @@
 package com.example.todolist.activity.home;
 
 import android.app.Dialog;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.ViewGroup;
 
@@ -29,9 +31,15 @@ public class HomeActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        binding = ActivityHomeBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
 
+        binding = ActivityHomeBinding.inflate(getLayoutInflater());
+        int bgColor = Color.parseColor("#0B0B0E");
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(bgColor));
+        getWindow().getDecorView().setBackgroundColor(bgColor);
+        binding.getRoot().setBackgroundColor(bgColor);
+        androidx.core.view.WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView()).setAppearanceLightStatusBars(false);
+        setContentView(binding.getRoot());
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.BottomAppBar, (v, insets) -> {
             androidx.core.graphics.Insets systemBars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars());
             v.setPadding(0, 0, 0, systemBars.bottom);
