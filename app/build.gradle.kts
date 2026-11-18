@@ -40,6 +40,7 @@ dependencies {
     
     implementation("com.google.android.gms:play-services-auth:21.4.0")
     implementation("com.intuit.sdp:sdp-android:1.1.1")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     
     implementation(libs.appcompat)
     implementation(libs.material)

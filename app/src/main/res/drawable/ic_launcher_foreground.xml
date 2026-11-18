@@ -1,30 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:pathData="M31,63.928c0,0 6.4,-11 12.1,-13.1c7.2,-2.6 26,-1.4 26,-1.4l38.1,38.1L107,108.928l-32,-1L31,63.928z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:endX="85.84757"
-                android:endY="92.4963"
-                android:startX="42.9492"
-                android:startY="49.59793"
-                android:type="linear">
-                <item
-                    android:color="#44000000"
-                    android:offset="0.0" />
-                <item
-                    android:color="#00000000"
-                    android:offset="1.0" />
-            </gradient>
-        </aapt:attr>
-    </path>
+
+    <!-- 1. Clipboard Shadow -->
+    <path
+        android:fillColor="#300552"
+        android:fillAlpha="0.35"
+        android:pathData="M31,31h40c4,0 7,3 7,7v37c0,4 -3,7 -7,7H31c-4,0 -7,-3 -7,-7V38c0,-4 3,-7 7,-7z" />
+
+    <!-- 2. Clipboard Base (White Body) -->
     <path
         android:fillColor="#FFFFFF"
-        android:fillType="nonZero"
-        android:pathData="M65.3,45.828l3.8,-6.6c0.2,-0.4 0.1,-0.9 -0.3,-1.1c-0.4,-0.2 -0.9,-0.1 -1.1,0.3l-3.9,6.7c-6.3,-2.8 -13.4,-2.8 -19.7,0l-3.9,-6.7c-0.2,-0.4 -0.7,-0.5 -1.1,-0.3C38.8,38.328 38.7,38.828 38.9,39.228l3.8,6.6C36.2,49.428 31.7,56.028 31,63.928h46C76.3,56.028 71.8,49.428 65.3,45.828zM43.4,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2c-0.3,-0.7 -0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C45.3,56.528 44.5,57.328 43.4,57.328L43.4,57.328zM64.6,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2s-0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C66.5,56.528 65.6,57.328 64.6,57.328L64.6,57.328z"
-        android:strokeWidth="1"
-        android:strokeColor="#00000000" />
+        android:pathData="M29,29h40c4,0 7,3 7,7v37c0,4 -3,7 -7,7H29c-4,0 -7,-3 -7,-7V36c0,-4 3,-7 7,-7z" />
+
+    <!-- 3. Top Clip Handle (Purple Accent) -->
+    <path
+        android:fillColor="#7C3AED"
+        android:pathData="M40,24h18c2.5,0 4.5,2 4.5,4.5v3.5c0,1.1 -0.9,2 -2,2H37.5c-1.1,0 -2,-0.9 -2,-2v-3.5c0,-2.5 2,-4.5 4.5,-4.5z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M49,26.5a2.2,2.2 0 1,1 0,4.4a2.2,2.2 0 1,1 0,-4.4" />
+
+    <!-- 4. Checkmark 1 (Purple) + Pill 1 (Light Violet) -->
+    <path
+        android:fillColor="#6D28D9"
+        android:pathData="M31,41.5l2.8,2.8l7.2,-7.2l1.6,1.6l-8.8,8.8l-4.4,-4.4z" />
+    <path
+        android:fillColor="#C4B5FD"
+        android:pathData="M45,39h19c1.1,0 2,0.9 2,2s-0.9,2 -2,2H45c-1.1,0 -2,-0.9 -2,-2s0.9,-2 2,-2z" />
+
+    <!-- 5. Checkmark 2 (Purple) + Pill 2 (Light Violet) -->
+    <path
+        android:fillColor="#6D28D9"
+        android:pathData="M31,52.5l2.8,2.8l7.2,-7.2l1.6,1.6l-8.8,8.8l-4.4,-4.4z" />
+    <path
+        android:fillColor="#C4B5FD"
+        android:pathData="M45,50h19c1.1,0 2,0.9 2,2s-0.9,2 -2,2H45c-1.1,0 -2,-0.9 -2,-2s0.9,-2 2,-2z" />
+
+    <!-- 6. Checkmark 3 (Purple) + Pill 3 (Light Violet) -->
+    <path
+        android:fillColor="#6D28D9"
+        android:pathData="M31,63.5l2.8,2.8l7.2,-7.2l1.6,1.6l-8.8,8.8l-4.4,-4.4z" />
+    <path
+        android:fillColor="#C4B5FD"
+        android:pathData="M45,61h11c1.1,0 2,0.9 2,2s-0.9,2 -2,2H45c-1.1,0 -2,-0.9 -2,-2s0.9,-2 2,-2z" />
+
+    <!-- 7. Clock Emblem (Bottom-Right Overlay) -->
+    <!-- Clock Outer Border Shadow -->
+    <path
+        android:fillColor="#2E044D"
+        android:fillAlpha="0.3"
+        android:pathData="M68,54a16.5,16.5 0 1,0 0,33a16.5,16.5 0 1,0 0,-33z" />
+    <!-- Clock Outer Ring (Dark Purple) -->
+    <path
+        android:fillColor="#4C1D95"
+        android:pathData="M67,52a16.5,16.5 0 1,0 0,33a16.5,16.5 0 1,0 0,-33z" />
+    <!-- Clock Inner Face (Pure White) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M67,55a13.5,13.5 0 1,0 0,27a13.5,13.5 0 1,0 0,-27z" />
+    <!-- Clock Hands -->
+    <path
+        android:fillColor="#4C1D95"
+        android:pathData="M66,60.5h2v8h-2z" />
+    <path
+        android:fillColor="#4C1D95"
+        android:pathData="M66.6,66.6l6.2,6.2l-1.4,1.4l-6.2,-6.2z" />
+    <path
+        android:fillColor="#4C1D95"
+        android:pathData="M67,66.5a2,2 0 1,0 0,4a2,2 0 1,0 0,-4z" />
+
+    <!-- 8. Top-Right Sparkle Rays (White Pill Rays) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M73,23.5l4.5,-6.5l1.6,1.1l-4.5,6.5z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M78.5,29.5l6.5,-3.2l0.9,1.8l-6.5,3.2z" />
+
 </vector>

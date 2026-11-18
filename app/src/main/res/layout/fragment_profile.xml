@@ -27,16 +27,13 @@
             android:orientation="horizontal">
             <!-- Title: Settings -->
             <TextView
-                android:id="@+id/tvTitle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:layout_weight="1"
-                android:textAlignment="center"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:fontFamily="sans-serif-medium"
-                android:text="Settings"
+                android:text="Setting"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="18sp"
+                android:textSize="@dimen/_16sdp"
                 android:textStyle="bold" />
         </LinearLayout>
 

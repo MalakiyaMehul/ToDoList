@@ -36,27 +36,28 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
                     android:fontFamily="sans-serif-medium"
-                    android:layout_marginLeft="@dimen/_100sdp"
                     android:text="Analytics"
+                    android:textAlignment="center"
                     android:textColor="@color/white"
-                    android:textSize="15sp"
+                    android:textSize="@dimen/_16sdp"
                     android:textStyle="bold" />
-
             </LinearLayout>
 
             <!-- Profile Avatar Circle -->
-            <ImageButton
+            <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/ivFocusAvatar"
                 android:layout_width="34dp"
                 android:layout_height="34dp"
                 android:layout_marginStart="8dp"
-                android:background="@drawable/img_user_avatar"
                 android:contentDescription="Profile avatar"
                 android:scaleType="centerCrop"
-                android:src="@drawable/img_user_avatar" />
+                android:src="@drawable/img_user_avatar"
+                app:shapeAppearanceOverlay="@style/CircularFab"
+                app:strokeColor="#A855F7"
+                app:strokeWidth="1.5dp" />
         </LinearLayout>
 
         <!-- Header: Productivity Analytics + Sparkle / Stats Icon -->

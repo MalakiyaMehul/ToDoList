@@ -274,51 +274,26 @@ public class ProfileFragment extends Fragment {
         return null;
     }
 
-    private int calculateStreak(List<TaskModel> tasks) {
-        if (tasks == null || tasks.isEmpty()) return 0;
-        Set<String> completedDateKeys = new HashSet<>();
-        SimpleDateFormat dayKeyFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        for (TaskModel task : tasks) {
-            if (task.isCompleted() && task.getDate() != null && !task.getDate().trim().isEmpty()) {
-                Date d = parseTaskDate(task.getDate());
-                if (d != null) {
-                    completedDateKeys.add(dayKeyFormat.format(d));
-                }
-            }
-        }
-        if (completedDateKeys.isEmpty()) return 0;
-
-        Calendar cal = Calendar.getInstance();
-        String todayKey = dayKeyFormat.format(cal.getTime());
-        cal.add(Calendar.DAY_OF_YEAR, -1);
-        String yesterdayKey = dayKeyFormat.format(cal.getTime());
-
-        int streak = 0;
-        if (completedDateKeys.contains(todayKey)) {
-            cal = Calendar.getInstance();
-            while (completedDateKeys.contains(dayKeyFormat.format(cal.getTime()))) {
-                streak++;
-                cal.add(Calendar.DAY_OF_YEAR, -1);
-            }
-        } else if (completedDateKeys.contains(yesterdayKey)) {
-            cal = Calendar.getInstance();
-            cal.add(Calendar.DAY_OF_YEAR, -1);
-            while (completedDateKeys.contains(dayKeyFormat.format(cal.getTime()))) {
-                streak++;
-                cal.add(Calendar.DAY_OF_YEAR, -1);
-            }
-        } else {
-            streak = completedDateKeys.size();
-        }
-        return streak;
+    private int calculateAccountDayStreak() {
+        if (!isAdded() || getContext() == null) return 1;
+        long regTime = SharedPrefManager.getInstance(requireContext()).getRegistrationTimestamp(userId);
+        long now = System.currentTimeMillis();
+        long diffMillis = now - regTime;
+        if (diffMillis < 0) diffMillis = 0;
+        long daysElapsed = diffMillis / (24 * 60 * 60 * 1000L);
+        return (int) (daysElapsed + 1);
     }
 
     private void loadTaskStats() {
+        int streak = calculateAccountDayStreak();
+        if (binding != null) {
+            binding.tvStreakStat.setText(streak + "d");
+        }
+
         if (userId == null || userId.isEmpty()) {
             if (binding != null) {
                 binding.tvCompletedStat.setText("0");
                 binding.tvOnTimeStat.setText("0%");
-                binding.tvStreakStat.setText("0d");
             }
             return;
         }
@@ -337,11 +312,11 @@ public class ProfileFragment extends Fragment {
                 }
 
                 int rate = total > 0 ? (completed * 100) / total : 0;
-                int streak = calculateStreak(tasks);
+                int currentStreak = calculateAccountDayStreak();
 
                 final int finalCompleted = completed;
                 final int finalRate = rate;
-                final int finalStreak = streak;
+                final int finalStreak = currentStreak;
 
                 requireActivity().runOnUiThread(() -> {
                     if (binding == null) return;

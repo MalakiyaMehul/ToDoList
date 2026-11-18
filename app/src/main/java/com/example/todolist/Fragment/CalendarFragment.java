@@ -112,13 +112,18 @@ public class CalendarFragment extends Fragment {
             Calendar dayCalendar = (Calendar) calendar.clone();
             dayCalendar.set(Calendar.DAY_OF_MONTH, day);
 
-            // Container column
             LinearLayout dayColumn = new LinearLayout(requireContext());
             dayColumn.setOrientation(LinearLayout.VERTICAL);
             dayColumn.setGravity(Gravity.CENTER_HORIZONTAL);
-            dayColumn.setPadding(dp(2), 0, dp(2), 0);
+            LinearLayout.LayoutParams columnParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            columnParams.setMargins(dp(3), 0, dp(3), 0);
+            dayColumn.setLayoutParams(columnParams);
+            dayColumn.setPadding(0, dp(4), 0, dp(4));
 
-            // Weekday letter initial (M, T, W, T, F, S, S)
+
             String weekday = new SimpleDateFormat("EEE", Locale.ENGLISH).format(dayCalendar.getTime());
             String initial = weekday.substring(0, 1).toUpperCase(Locale.ENGLISH);
 
@@ -129,7 +134,6 @@ public class CalendarFragment extends Fragment {
             dayLetter.setTextColor(Color.parseColor("#71717A"));
             dayLetter.setGravity(Gravity.CENTER);
 
-            // Day Pill
             LinearLayout pill = new LinearLayout(requireContext());
             pill.setOrientation(LinearLayout.VERTICAL);
             pill.setGravity(Gravity.CENTER);

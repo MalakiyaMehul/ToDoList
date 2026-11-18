@@ -7,10 +7,15 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.RadioButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 
+import com.example.todolist.Dialog.SubTaskBottomSheet;
 import com.example.todolist.R;
 import com.example.todolist.SharedPrefManager.SharedPrefManager;
 import com.example.todolist.activity.Supabase.SupabaseAuth;
@@ -18,10 +23,14 @@ import com.example.todolist.activity.Supabase.SupabaseRepository;
 import com.example.todolist.databinding.ActivityTaskDetailBinding;
 import com.example.todolist.model.TaskModel;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class TaskDetail extends BaseActivity {
@@ -37,6 +46,7 @@ public class TaskDetail extends BaseActivity {
     private String categoryColor;
     private String categoryIcon = "";
     private boolean completed = false;
+    private String subTask = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +73,7 @@ public class TaskDetail extends BaseActivity {
         categoryColor = intent.getStringExtra("categoryColor");
         categoryIcon = intent.getStringExtra("categoryIcon");
         completed = intent.getBooleanExtra("completed", false);
+        subTask = intent.getStringExtra("subTask");
     }
 
     private void setupUI() {
@@ -118,6 +129,9 @@ public class TaskDetail extends BaseActivity {
 
         // Completion Status
         updateCompletionUI();
+
+        // Subtasks UI
+        renderSubTasks();
     }
 
     private void updatePriorityUI(String prio) {
@@ -231,6 +245,9 @@ public class TaskDetail extends BaseActivity {
         // Back Navigation
         binding.btnBack.setOnClickListener(v -> finish());
 
+        // Subtasks Card & Action
+        binding.btnManageSubTasks.setOnClickListener(v -> openSubTaskBottomSheet());
+        binding.cardSubTasks.setOnClickListener(v -> openSubTaskBottomSheet());
 
         // Edit Objective / Pen
         binding.btnEditObjective.setOnClickListener(v -> openEditTaskActivity());
@@ -246,6 +263,91 @@ public class TaskDetail extends BaseActivity {
         });
 
         binding.btnDeleteTask.setOnClickListener(v -> confirmAndDeleteTask());
+    }
+
+    private void openSubTaskBottomSheet() {
+        TaskModel model = new TaskModel();
+        model.setTaskId(taskId);
+        model.setTaskName(taskName);
+        model.setSubTask(subTask);
+
+        SubTaskBottomSheet.show(this, model, updatedJson -> {
+            subTask = updatedJson;
+            renderSubTasks();
+        });
+    }
+
+    private void renderSubTasks() {
+        if (binding == null) return;
+        binding.layoutSubTasksContainer.removeAllViews();
+
+        if (subTask == null || subTask.trim().isEmpty()) {
+            TextView emptyTv = new TextView(this);
+            emptyTv.setText("No subtasks added. Tap Manage to add.");
+            emptyTv.setTextColor(Color.parseColor("#8E93A0"));
+            emptyTv.setTextSize(12);
+            binding.layoutSubTasksContainer.addView(emptyTv);
+            return;
+        }
+
+        try {
+            JSONArray array = new JSONArray(subTask.trim());
+            if (array.length() == 0) {
+                TextView emptyTv = new TextView(this);
+                emptyTv.setText("No subtasks added. Tap Manage to add.");
+                emptyTv.setTextColor(Color.parseColor("#8E93A0"));
+                emptyTv.setTextSize(12);
+                binding.layoutSubTasksContainer.addView(emptyTv);
+                return;
+            }
+
+            for (int i = 0; i < array.length(); i++) {
+                JSONObject obj = array.getJSONObject(i);
+                String title = obj.optString("title", "");
+                boolean isDone = obj.optBoolean("done", false);
+
+                if (!title.isEmpty()) {
+                    View itemView = getLayoutInflater().inflate(R.layout.item_sub_task, binding.layoutSubTasksContainer, false);
+                    RadioButton radio = itemView.findViewById(R.id.radioSubTaskCompleted);
+                    TextView txtTitle = itemView.findViewById(R.id.txtSubTaskTitle);
+                    ImageView btnDelete = itemView.findViewById(R.id.btnDeleteSubTask);
+
+                    txtTitle.setText(title);
+                    radio.setChecked(isDone);
+
+                    if (isDone) {
+                        txtTitle.setPaintFlags(txtTitle.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+                        txtTitle.setAlpha(0.6f);
+                    } else {
+                        txtTitle.setPaintFlags(txtTitle.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+                        txtTitle.setAlpha(1.0f);
+                    }
+
+                    radio.setOnClickListener(v -> {
+                        try {
+                            obj.put("done", !isDone);
+                            subTask = array.toString();
+                            renderSubTasks();
+
+                            if (taskId != null && !taskId.isEmpty()) {
+                                String token = SharedPrefManager.getInstance(TaskDetail.this).getString("access_token");
+                                if (token.isEmpty()) token = SupabaseAuth.getAccessToken(TaskDetail.this);
+                                new SupabaseRepository().updateTaskSubTask(taskId, token, subTask, null);
+                            }
+                        } catch (Exception ignored) {}
+                    });
+
+                    btnDelete.setVisibility(View.GONE);
+                    binding.layoutSubTasksContainer.addView(itemView);
+                }
+            }
+        } catch (Exception e) {
+            TextView emptyTv = new TextView(this);
+            emptyTv.setText(subTask);
+            emptyTv.setTextColor(Color.WHITE);
+            emptyTv.setTextSize(13);
+            binding.layoutSubTasksContainer.addView(emptyTv);
+        }
     }
 
     @Override
@@ -267,7 +369,7 @@ public class TaskDetail extends BaseActivity {
 
         new SupabaseRepository().getTasks(uid, token, new SupabaseRepository.GetTasksCallback() {
             @Override
-            public void onSuccess(java.util.List<TaskModel> tasks) {
+            public void onSuccess(List<TaskModel> tasks) {
                 for (TaskModel model : tasks) {
                     if (taskId.equals(model.getTaskId())) {
                         taskName = model.getTaskName();
@@ -279,6 +381,7 @@ public class TaskDetail extends BaseActivity {
                         categoryColor = model.getCategoryColor();
                         categoryIcon = model.getCategoryIcon();
                         completed = model.isCompleted();
+                        subTask = model.getSubTask();
                         setupUI();
                         break;
                     }

@@ -63,6 +63,9 @@ public class IndexFragment extends Fragment {
         updateGreeting();
         loadSavedAvatar();
 
+        binding.swipeRefreshLayout.setColorSchemeResources(R.color.brand_primary, R.color.brand_secondary);
+        binding.swipeRefreshLayout.setOnRefreshListener(this::loadTasks);
+
         updateTabUI(currentTab);
         loadTasks();
         return binding.getRoot();
@@ -207,6 +210,7 @@ public class IndexFragment extends Fragment {
         intent.putExtra("categoryColor", taskModel.getCategoryColor());
         intent.putExtra("categoryIcon", taskModel.getCategoryIcon());
         intent.putExtra("completed", taskModel.isCompleted());
+        intent.putExtra("subTask", taskModel.getSubTask());
         startActivity(intent);
     }
 
@@ -312,6 +316,9 @@ public class IndexFragment extends Fragment {
         }
 
         if (userId == null || userId.isEmpty()) {
+            if (binding != null && binding.swipeRefreshLayout.isRefreshing()) {
+                binding.swipeRefreshLayout.setRefreshing(false);
+            }
             return;
         }
 
@@ -319,11 +326,25 @@ public class IndexFragment extends Fragment {
         repository.getTasks(userId, accessToken, new SupabaseRepository.GetTasksCallback() {
             @Override
             public void onSuccess(List<TaskModel> tasks) {
-                populateTasks(tasks);
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        if (binding != null && binding.swipeRefreshLayout.isRefreshing()) {
+                            binding.swipeRefreshLayout.setRefreshing(false);
+                        }
+                        populateTasks(tasks);
+                    });
+                }
             }
 
             @Override
             public void onError(String error) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        if (binding != null && binding.swipeRefreshLayout.isRefreshing()) {
+                            binding.swipeRefreshLayout.setRefreshing(false);
+                        }
+                    });
+                }
             }
         });
     }

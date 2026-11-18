@@ -36,6 +36,22 @@ public class SharedPrefManager {
         return preferences.getString(key, "");
     }
 
+    public long getRegistrationTimestamp(String userId) {
+        String key = "reg_time_" + (userId != null && !userId.trim().isEmpty() ? userId.trim() : "default");
+        long time = preferences.getLong(key, 0L);
+        if (time <= 0L) {
+            time = System.currentTimeMillis();
+            preferences.edit().putLong(key, time).apply();
+        }
+        return time;
+    }
+
+    public void setRegistrationTimestamp(String userId, long timestamp) {
+        if (timestamp <= 0L) return;
+        String key = "reg_time_" + (userId != null && !userId.trim().isEmpty() ? userId.trim() : "default");
+        preferences.edit().putLong(key, timestamp).apply();
+    }
+
     public void clear() {
         preferences.edit().clear().apply();
     }

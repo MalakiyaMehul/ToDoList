@@ -8,11 +8,13 @@
     android:background="@color/brand_neutral_bg">
 
     <ScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
         android:fillViewport="true"
         android:overScrollMode="never"
+        android:scrollbars="none"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -183,6 +185,7 @@
                 android:layout_marginTop="20dp"
                 android:background="@drawable/bg_login_primary_button"
                 android:drawableEnd="@drawable/ic_arrow_right_white"
+                android:focusable="true"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
                 android:paddingHorizontal="20dp"

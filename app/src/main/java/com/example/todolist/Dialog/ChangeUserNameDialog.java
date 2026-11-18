@@ -10,7 +10,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.DialogFragment;
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import com.example.todolist.activity.Supabase.SupabaseAuth;
 import com.example.todolist.activity.Supabase.SupabaseClient;
@@ -26,7 +26,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class ChangeUserNameDialog extends DialogFragment {
+public class ChangeUserNameDialog extends BottomSheetDialogFragment {
 
     public static final String REQUEST_KEY =
             "change_username_request";

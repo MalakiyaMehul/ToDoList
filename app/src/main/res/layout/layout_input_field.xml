@@ -61,6 +61,10 @@
             android:background="@null"
             android:fontFamily="sans-serif"
             android:hint="Enter your Username"
+            android:imeOptions="actionNext"
+            android:inputType="text"
+            android:maxLines="1"
+            android:singleLine="true"
             android:textColor="@color/white"
             android:textColorHint="@color/text_hint"
             android:textSize="14sp" />
@@ -125,5 +129,16 @@
             android:layout_weight="1"
             android:background="@drawable/bg_strength_bar_inactive" />
     </LinearLayout>
+
+    <!-- Optional Bottom Status / Password Strength Label -->
+    <TextView
+        android:id="@+id/txtStatusMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:fontFamily="sans-serif-medium"
+        android:text=""
+        android:textSize="12sp"
+        android:visibility="gone" />
 
 </LinearLayout>

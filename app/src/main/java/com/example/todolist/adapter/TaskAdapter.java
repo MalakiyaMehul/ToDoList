@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.todolist.Dialog.SubTaskBottomSheet;
 import com.example.todolist.R;
 import com.example.todolist.SharedPrefManager.SharedPrefManager;
 import com.example.todolist.activity.Supabase.SupabaseAuth;
@@ -84,16 +85,12 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                 binding.categoryInclude.imgCategory.setImageResource(R.drawable.university);
             }
         }
-
-        // Priority
         String priority = taskModel.getPriority();
         if (priority != null && !priority.isEmpty()) {
             binding.priorityInclude.priority.setText(priority);
         } else {
             binding.priorityInclude.priority.setText("Normal");
         }
-
-        // Card margin
         ViewGroup.LayoutParams layoutParams = holder.itemView.getLayoutParams();
         if (layoutParams instanceof ViewGroup.MarginLayoutParams) {
             ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) layoutParams;
@@ -165,8 +162,12 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             bottomSheetDialog.dismiss();
             openEditTask(context, taskModel);
         });
-
-        // Delete button click
+        sheetBinding.btnActionSubTask.setOnClickListener(v -> {
+            bottomSheetDialog.dismiss();
+            SubTaskBottomSheet.show(context, taskModel, updatedSubTaskJson -> {
+                taskModel.setSubTask(updatedSubTaskJson);
+            });
+        });
         sheetBinding.btnActionDelete.setOnClickListener(v -> {
             bottomSheetDialog.dismiss();
             confirmAndDeleteTask(context, taskModel);
@@ -187,6 +188,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         intent.putExtra("categoryColor", taskModel.getCategoryColor());
         intent.putExtra("categoryIcon", taskModel.getCategoryIcon());
         intent.putExtra("completed", taskModel.isCompleted());
+        intent.putExtra("subTask", taskModel.getSubTask());
         context.startActivity(intent);
     }
 
@@ -202,6 +204,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         intent.putExtra("categoryColor", taskModel.getCategoryColor());
         intent.putExtra("categoryIcon", taskModel.getCategoryIcon());
         intent.putExtra("completed", taskModel.isCompleted());
+        intent.putExtra("subTask", taskModel.getSubTask());
         context.startActivity(intent);
     }
 

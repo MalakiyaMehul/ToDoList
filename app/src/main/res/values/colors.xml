@@ -7,6 +7,11 @@
     <color name="text_white">#FFFFFF</color>
     <color name="text_secondary">#8E8E93</color>
     <color name="danger_red">#FF4949</color>
+    <color name="status_success">#22C55E</color>
+    <color name="strength_low">#FF4949</color>
+    <color name="strength_medium">#F59E0B</color>
+    <color name="strength_high">#3B82F6</color>
+    <color name="strength_strong">#22C55E</color>
 
     <!-- Design System Colors from Image 2 -->
     <color name="brand_primary">#8B5CF6</color>

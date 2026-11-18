@@ -26,41 +26,48 @@
             android:orientation="vertical">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:fontFamily="sans-serif-medium"
-                android:layout_marginLeft="@dimen/_100sdp"
-                android:text="Tasks Home"
+                android:text="Task Home"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="15sp"
+                android:textSize="@dimen/_16sdp"
                 android:textStyle="bold" />
 
         </LinearLayout>
 
 
         <!-- User Avatar Circle -->
-        <ImageButton
+        <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/ivIndexAvatar"
             android:layout_width="34dp"
             android:layout_height="34dp"
             android:layout_marginStart="8dp"
-            android:background="@drawable/img_user_avatar"
             android:contentDescription="Profile image"
             android:scaleType="centerCrop"
-            android:src="@drawable/img_user_avatar" />
+            android:src="@drawable/img_user_avatar"
+            app:shapeAppearanceOverlay="@style/CircularFab"
+            app:strokeColor="#A855F7"
+            app:strokeWidth="1.5dp" />
     </LinearLayout>
 
-    <!-- Main Scrollable Content -->
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/scrollTasks"
+    <!-- Main Scrollable Content wrapped in SwipeRefreshLayout -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:clipToPadding="false"
-        android:fillViewport="true"
-        android:overScrollMode="never"
-        android:paddingBottom="72dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/menu">
+
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/scrollTasks"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:fillViewport="true"
+            android:overScrollMode="never"
+            android:paddingBottom="72dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -150,15 +157,6 @@
                     android:textColor="@color/white"
                     android:textColorHint="@color/text_hint"
                     android:textSize="14sp" />
-
-                <ImageView
-                    android:id="@+id/btnQuickMic"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginEnd="10dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Voice Input"
-                    android:src="@drawable/ic_mic" />
 
                 <FrameLayout
                     android:id="@+id/btnQuickAddAction"
@@ -414,5 +412,7 @@
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

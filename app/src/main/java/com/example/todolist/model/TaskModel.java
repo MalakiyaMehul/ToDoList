@@ -13,6 +13,7 @@ public class TaskModel {
     private String categoryColor;
     private String categoryIcon;
     private String username;
+    private String subTask;
 
     public TaskModel() {
     }
@@ -130,5 +131,13 @@ public class TaskModel {
 
     public void setCompleted(boolean completed) {
         this.completed = completed;
+    }
+
+    public String getSubTask() {
+        return subTask;
+    }
+
+    public void setSubTask(String subTask) {
+        this.subTask = subTask;
     }
 }

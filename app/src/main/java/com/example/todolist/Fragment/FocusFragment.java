@@ -370,44 +370,18 @@ public class FocusFragment extends Fragment {
         updateCategoryLegend(statList, totalTasks);
         updateWeeklyOutputTrend();
 
-        Set<String> completedDateKeys = new HashSet<>();
-        SimpleDateFormat dayKeyFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        for (TaskModel task : allTasksList) {
-            if (task != null && task.isCompleted() && task.getDate() != null && !task.getDate().trim().isEmpty()) {
-                Calendar c = parseDate(task.getDate());
-                if (c != null) {
-                    completedDateKeys.add(dayKeyFormat.format(c.getTime()));
-                }
-            }
+        String uid = SharedPrefManager.getInstance(requireContext()).getString("user_id");
+        if (uid == null || uid.isEmpty()) {
+            uid = SupabaseAuth.getUserId(requireContext());
         }
-
-        int streak = 0;
-        if (!completedDateKeys.isEmpty()) {
-            Calendar cal = Calendar.getInstance();
-            String todayKey = dayKeyFormat.format(cal.getTime());
-            cal.add(Calendar.DAY_OF_YEAR, -1);
-            String yesterdayKey = dayKeyFormat.format(cal.getTime());
-
-            if (completedDateKeys.contains(todayKey)) {
-                cal = Calendar.getInstance();
-                while (completedDateKeys.contains(dayKeyFormat.format(cal.getTime()))) {
-                    streak++;
-                    cal.add(Calendar.DAY_OF_YEAR, -1);
-                }
-            } else if (completedDateKeys.contains(yesterdayKey)) {
-                cal = Calendar.getInstance();
-                cal.add(Calendar.DAY_OF_YEAR, -1);
-                while (completedDateKeys.contains(dayKeyFormat.format(cal.getTime()))) {
-                    streak++;
-                    cal.add(Calendar.DAY_OF_YEAR, -1);
-                }
-            } else {
-                streak = completedDateKeys.size();
-            }
-        }
+        long regTime = SharedPrefManager.getInstance(requireContext()).getRegistrationTimestamp(uid);
+        long nowMillis = System.currentTimeMillis();
+        long diffMillis = nowMillis - regTime;
+        if (diffMillis < 0) diffMillis = 0;
+        int streak = (int) (diffMillis / (24 * 60 * 60 * 1000L)) + 1;
 
         binding.tvStreakDaysBadge.setText(streak + "\nDays");
-        binding.tvStreakSubtitle.setText(streak > 0 ? "You're on a " + streak + "-day streak! Keep going!" : "Complete a task today to start your streak!");
+        binding.tvStreakSubtitle.setText("You're on a " + streak + "-day streak! Keep going!");
         final int finalStreak = streak;
         binding.btnStreakDetails.setOnClickListener(v ->
                 Toast.makeText(requireContext(), "Consistency details: " + finalStreak + " day active streak!", Toast.LENGTH_SHORT).show()

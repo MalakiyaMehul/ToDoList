@@ -8,6 +8,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -103,32 +107,55 @@ public class SupabaseAuth {
             JsonObject response,
             String username) {
 
-        String accessToken = response.has("access_token")
+        String accessToken = response.has("access_token") && !response.get("access_token").isJsonNull()
                 ? response.get("access_token").getAsString()
-                : (response.has("session") && response.get("session").isJsonObject() && response.getAsJsonObject("session").has("access_token")
+                : (response.has("session") && response.get("session").isJsonObject()
+                        && response.getAsJsonObject("session").has("access_token")
+                        && !response.getAsJsonObject("session").get("access_token").isJsonNull()
                         ? response.getAsJsonObject("session").get("access_token").getAsString()
                         : "");
 
-        String refreshToken = response.has("refresh_token")
+        String refreshToken = response.has("refresh_token") && !response.get("refresh_token").isJsonNull()
                 ? response.get("refresh_token").getAsString()
-                : (response.has("session") && response.get("session").isJsonObject() && response.getAsJsonObject("session").has("refresh_token")
+                : (response.has("session") && response.get("session").isJsonObject()
+                        && response.getAsJsonObject("session").has("refresh_token")
+                        && !response.getAsJsonObject("session").get("refresh_token").isJsonNull()
                         ? response.getAsJsonObject("session").get("refresh_token").getAsString()
                         : "");
 
         JsonObject user = response.has("user")
                 && response.get("user").isJsonObject()
                 ? response.getAsJsonObject("user")
-                : (response.has("session") && response.get("session").isJsonObject() && response.getAsJsonObject("session").has("user") && response.getAsJsonObject("session").get("user").isJsonObject()
+                : (response.has("session") && response.get("session").isJsonObject()
+                        && response.getAsJsonObject("session").has("user")
+                        && response.getAsJsonObject("session").get("user").isJsonObject()
                         ? response.getAsJsonObject("session").getAsJsonObject("user")
                         : null);
 
-        String userId = user != null && user.has("id")
+        String userId = user != null && user.has("id") && !user.get("id").isJsonNull()
                 ? user.get("id").getAsString()
-                : "";
+                : (response.has("id") && !response.get("id").isJsonNull()
+                        ? response.get("id").getAsString()
+                        : "");
 
-        String email = user != null && user.has("email")
+        String email = user != null && user.has("email") && !user.get("email").isJsonNull()
                 ? user.get("email").getAsString()
-                : "";
+                : (response.has("email") && !response.get("email").isJsonNull()
+                        ? response.get("email").getAsString()
+                        : "");
+
+        String createdAt = user != null && user.has("created_at") && !user.get("created_at").isJsonNull()
+                ? user.get("created_at").getAsString()
+                : (response.has("created_at") && !response.get("created_at").isJsonNull()
+                        ? response.get("created_at").getAsString()
+                        : "");
+
+        long regTime = parseIso8601ToMillis(createdAt);
+        if (regTime > 0L) {
+            SharedPrefManager.getInstance(context).setRegistrationTimestamp(userId, regTime);
+        } else {
+            SharedPrefManager.getInstance(context).getRegistrationTimestamp(userId);
+        }
 
         SharedPrefManager.getInstance(context).setString("access_token", accessToken);
         SharedPrefManager.getInstance(context).setString("refresh_token", refreshToken);
@@ -143,6 +170,26 @@ public class SupabaseAuth {
                 .putString("email", email)
                 .putString("username", username)
                 .apply();
+    }
+
+    public static long parseIso8601ToMillis(String dateStr) {
+        if (dateStr == null || dateStr.trim().isEmpty()) return 0L;
+        String[] formats = new String[]{
+                "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'",
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                "yyyy-MM-dd'T'HH:mm:ss'Z'",
+                "yyyy-MM-dd'T'HH:mm:ss",
+                "yyyy-MM-dd HH:mm:ss"
+        };
+        for (String fmt : formats) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat(fmt, Locale.US);
+                sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+                Date d = sdf.parse(dateStr.trim());
+                if (d != null) return d.getTime();
+            } catch (Exception ignored) {}
+        }
+        return 0L;
     }
 
     public static void signUp(

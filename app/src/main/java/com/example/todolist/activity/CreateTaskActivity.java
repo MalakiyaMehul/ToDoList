@@ -2,11 +2,14 @@ package com.example.todolist.activity;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -14,14 +17,25 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.core.content.ContextCompat;
 
+import android.view.LayoutInflater;
+import android.view.ViewGroup;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.todolist.R;
 import com.example.todolist.SharedPrefManager.SharedPrefManager;
 import com.example.todolist.activity.Supabase.SupabaseAuth;
 import com.example.todolist.activity.Supabase.SupabaseRepository;
+import com.example.todolist.databinding.ActivityCategoryBottomSheetBinding;
 import com.example.todolist.databinding.ActivityCreateTaskBinding;
+import com.example.todolist.model.CategoryModel;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 public class CreateTaskActivity extends BaseActivity {
@@ -34,6 +48,11 @@ public class CreateTaskActivity extends BaseActivity {
     private String selectedTime = "";
     private String selectedCategoryColor = "#8B5CF6";
     private String selectedCategoryIcon = String.valueOf(R.drawable.briefcase);
+    private int selectedAlertOffsetMinutes = 15;
+
+    private String customSlot1Category = "Work";
+    private int customSlot1Icon = R.drawable.ic_briefcase_custom;
+    private String customSlot1Color = "#FF9680";
 
     private Calendar calendar;
 
@@ -91,6 +110,17 @@ public class CreateTaskActivity extends BaseActivity {
         // Submit Button
         binding.btnCreateTask.setOnClickListener(v -> createTask());
 
+        setupFieldNavigation();
+
+        // Pulse Reminder Switch & Offset Pills
+        binding.switchReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            binding.txtReminderTitle.setText(isChecked ? "Pulse Reminder: Enabled" : "Pulse Reminder: Disabled");
+        });
+
+        binding.pillOffset15m.setOnClickListener(v -> updateAlertOffsetUI(15));
+        binding.pillOffset30m.setOnClickListener(v -> updateAlertOffsetUI(30));
+        binding.pillOffset1h.setOnClickListener(v -> updateAlertOffsetUI(60));
+
         // Setup switch tinting programmatically for reliability across Android versions
         ColorStateList thumbStates = new ColorStateList(
                 new int[][]{
@@ -112,8 +142,72 @@ public class CreateTaskActivity extends BaseActivity {
                         ContextCompat.getColor(this, R.color.drag_handle_color)
                 }
         );
-        binding.switchPulseReminder.setThumbTintList(thumbStates);
-        binding.switchPulseReminder.setTrackTintList(trackStates);
+        binding.switchReminder.setThumbTintList(thumbStates);
+        binding.switchReminder.setTrackTintList(trackStates);
+    }
+
+    private void updateAlertOffsetUI(int minutes) {
+        selectedAlertOffsetMinutes = minutes;
+
+        binding.pillOffset15m.setBackgroundResource(R.drawable.bg_alert_offset_unselected);
+        binding.pillOffset15m.setTextColor(ContextCompat.getColor(this, R.color.text_muted));
+
+        binding.pillOffset30m.setBackgroundResource(R.drawable.bg_alert_offset_unselected);
+        binding.pillOffset30m.setTextColor(ContextCompat.getColor(this, R.color.text_muted));
+
+        binding.pillOffset1h.setBackgroundResource(R.drawable.bg_alert_offset_unselected);
+        binding.pillOffset1h.setTextColor(ContextCompat.getColor(this, R.color.text_muted));
+
+        if (minutes == 15) {
+            binding.pillOffset15m.setBackgroundResource(R.drawable.bg_alert_offset_selected);
+            binding.pillOffset15m.setTextColor(ContextCompat.getColor(this, R.color.white));
+        } else if (minutes == 30) {
+            binding.pillOffset30m.setBackgroundResource(R.drawable.bg_alert_offset_selected);
+            binding.pillOffset30m.setTextColor(ContextCompat.getColor(this, R.color.white));
+        } else if (minutes == 60) {
+            binding.pillOffset1h.setBackgroundResource(R.drawable.bg_alert_offset_selected);
+            binding.pillOffset1h.setTextColor(ContextCompat.getColor(this, R.color.white));
+        }
+    }
+
+    private void setupFieldNavigation() {
+        binding.edtTaskTitle.setImeOptions(EditorInfo.IME_ACTION_NEXT);
+        binding.edtTaskTitle.setSingleLine(true);
+        binding.edtTaskTitle.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_NEXT ||
+                actionId == EditorInfo.IME_ACTION_DONE ||
+                (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP)) {
+                binding.edtTaskDetails.requestFocus();
+                return true;
+            }
+            return false;
+        });
+
+        binding.edtTaskTitle.setOnKeyListener((v, keyCode, event) -> {
+            if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
+                binding.edtTaskDetails.requestFocus();
+                return true;
+            }
+            return false;
+        });
+
+        binding.edtTaskDetails.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        binding.edtTaskDetails.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE ||
+                (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP)) {
+                createTask();
+                return true;
+            }
+            return false;
+        });
+
+        binding.edtTaskDetails.setOnKeyListener((v, keyCode, event) -> {
+            if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP && !event.isShiftPressed()) {
+                createTask();
+                return true;
+            }
+            return false;
+        });
     }
 
     private void insertTextAtCursor(String textToInsert) {
@@ -129,6 +223,7 @@ public class CreateTaskActivity extends BaseActivity {
     }
 
     private void showDatePicker() {
+        Calendar now = Calendar.getInstance();
         DatePickerDialog datePickerDialog = new DatePickerDialog(
                 this,
                 (view, year, month, dayOfMonth) -> {
@@ -145,13 +240,25 @@ public class CreateTaskActivity extends BaseActivity {
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH)
         );
+        datePickerDialog.getDatePicker().setMinDate(now.getTimeInMillis() - 1000);
         datePickerDialog.show();
     }
 
     private void showTimePicker() {
+        Calendar now = Calendar.getInstance();
         TimePickerDialog timePickerDialog = new TimePickerDialog(
                 this,
                 (view, hourOfDay, minute) -> {
+                    Calendar tempCal = (Calendar) calendar.clone();
+                    tempCal.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                    tempCal.set(Calendar.MINUTE, minute);
+                    tempCal.set(Calendar.SECOND, 0);
+
+                    if (tempCal.before(now)) {
+                        Toast.makeText(this, "Cannot select a past time", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
                     calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
                     calendar.set(Calendar.MINUTE, minute);
 
@@ -167,37 +274,133 @@ public class CreateTaskActivity extends BaseActivity {
     }
 
     private void setupCategorySelection() {
-        binding.btnCatWork.setOnClickListener(v -> selectCategory("Work"));
-        binding.btnCatPersonal.setOnClickListener(v -> selectCategory("Personal"));
-        binding.btnCatDesign.setOnClickListener(v -> selectCategory("Design"));
-        binding.btnCatHealth.setOnClickListener(v -> selectCategory("Health"));
+        binding.btnCatWork.setOnClickListener(v -> selectSlot(1));
+        binding.btnCatPersonal.setOnClickListener(v -> selectSlot(2));
+        binding.btnCatDesign.setOnClickListener(v -> selectSlot(3));
+        binding.btnCatHealth.setOnClickListener(v -> selectSlot(4));
+        binding.btnCatMore.setOnClickListener(v -> showCategoryBottomSheet());
     }
 
-    private void selectCategory(String category) {
-        selectedCategory = category;
+    private void selectCustomCategory(CategoryModel category) {
+        customSlot1Category = category.getCategoryName();
+        customSlot1Icon = category.getIcon();
+        customSlot1Color = category.getColor();
 
-        updateCategoryButton(binding.btnCatWork, binding.iconCatWork, binding.txtCatWork, "Work".equals(category));
-        updateCategoryButton(binding.btnCatPersonal, binding.iconCatPersonal, binding.txtCatPersonal, "Personal".equals(category));
-        updateCategoryButton(binding.btnCatDesign, binding.iconCatDesign, binding.txtCatDesign, "Design".equals(category));
-        updateCategoryButton(binding.btnCatHealth, binding.iconCatHealth, binding.txtCatHealth, "Health".equals(category));
-        
-        switch (category) {
-            case "Work":
-                selectedCategoryColor = "#FF9680";
-                selectedCategoryIcon = String.valueOf(R.drawable.briefcase);
+        binding.txtCatWork.setText(customSlot1Category);
+        binding.iconCatWork.setImageResource(customSlot1Icon);
+
+        selectSlot(1);
+    }
+
+    private void selectSlot(int slot) {
+        updateCategoryButton(binding.btnCatWork, binding.iconCatWork, binding.txtCatWork, slot == 1);
+        updateCategoryButton(binding.btnCatPersonal, binding.iconCatPersonal, binding.txtCatPersonal, slot == 2);
+        updateCategoryButton(binding.btnCatDesign, binding.iconCatDesign, binding.txtCatDesign, slot == 3);
+        updateCategoryButton(binding.btnCatHealth, binding.iconCatHealth, binding.txtCatHealth, slot == 4);
+        updateCategoryButton(binding.btnCatMore, binding.iconCatMore, binding.txtCatMore, false);
+
+        switch (slot) {
+            case 1:
+                selectedCategory = customSlot1Category;
+                selectedCategoryColor = customSlot1Color;
+                selectedCategoryIcon = String.valueOf(customSlot1Icon);
                 break;
-            case "Personal":
+            case 2:
+                selectedCategory = "Personal";
                 selectedCategoryColor = "#06B6D4";
                 selectedCategoryIcon = String.valueOf(R.drawable.sport);
                 break;
-            case "Design":
+            case 3:
+                selectedCategory = "Design";
                 selectedCategoryColor = "#80FFD9";
                 selectedCategoryIcon = String.valueOf(R.drawable.design);
                 break;
-            case "Health":
+            case 4:
+                selectedCategory = "Health";
                 selectedCategoryColor = "#80FFA3";
                 selectedCategoryIcon = String.valueOf(R.drawable.heart);
                 break;
+        }
+    }
+
+    private void showCategoryBottomSheet() {
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+        ActivityCategoryBottomSheetBinding sheetBinding = ActivityCategoryBottomSheetBinding.inflate(getLayoutInflater());
+        bottomSheetDialog.setContentView(sheetBinding.getRoot());
+
+        if (bottomSheetDialog.getWindow() != null) {
+            View bottomSheetInternal = bottomSheetDialog.getWindow().findViewById(com.google.android.material.R.id.design_bottom_sheet);
+            if (bottomSheetInternal != null) {
+                bottomSheetInternal.setBackgroundResource(android.R.color.transparent);
+            }
+        }
+
+        List<CategoryModel> categoryList = new ArrayList<>();
+        categoryList.add(new CategoryModel("Work", R.drawable.briefcase, "#FF9680"));
+        categoryList.add(new CategoryModel("Personal", R.drawable.sport, "#06B6D4"));
+        categoryList.add(new CategoryModel("Design", R.drawable.design, "#80FFD9"));
+        categoryList.add(new CategoryModel("Health", R.drawable.heart, "#80FFA3"));
+        categoryList.add(new CategoryModel("Education", R.drawable.university, "#F59E0B"));
+        categoryList.add(new CategoryModel("Finance", R.drawable.tag, "#10B981"));
+        categoryList.add(new CategoryModel("Shopping", R.drawable.checklist_rafiki, "#EC4899"));
+        categoryList.add(new CategoryModel("Fitness", R.drawable.sport, "#EF4444"));
+        categoryList.add(new CategoryModel("Home", R.drawable.home, "#14B8A6"));
+        categoryList.add(new CategoryModel("Music", R.drawable.music, "#A855F7"));
+        categoryList.add(new CategoryModel("Camera", R.drawable.camera, "#3B82F6"));
+
+        sheetBinding.recyclerCategories.setLayoutManager(new GridLayoutManager(this, 3));
+        CategoryGridAdapter adapter = new CategoryGridAdapter(categoryList, category -> {
+            bottomSheetDialog.dismiss();
+            selectCustomCategory(category);
+        });
+        sheetBinding.recyclerCategories.setAdapter(adapter);
+
+        bottomSheetDialog.show();
+    }
+
+    private static class CategoryGridAdapter extends RecyclerView.Adapter<CategoryGridAdapter.ViewHolder> {
+        private final List<CategoryModel> categories;
+        private final OnCategoryClickListener listener;
+
+        interface OnCategoryClickListener {
+            void onCategoryClick(CategoryModel category);
+        }
+
+        CategoryGridAdapter(List<CategoryModel> categories, OnCategoryClickListener listener) {
+            this.categories = categories;
+            this.listener = listener;
+        }
+
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_category, parent, false);
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            CategoryModel item = categories.get(position);
+            holder.txtName.setText(item.getCategoryName());
+            holder.imgIcon.setImageResource(item.getIcon());
+            holder.imgIcon.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(holder.itemView.getContext(), R.color.white)));
+            holder.itemView.setOnClickListener(v -> listener.onCategoryClick(item));
+        }
+
+        @Override
+        public int getItemCount() {
+            return categories.size();
+        }
+
+        static class ViewHolder extends RecyclerView.ViewHolder {
+            TextView txtName;
+            ImageView imgIcon;
+
+            ViewHolder(@NonNull View itemView) {
+                super(itemView);
+                txtName = itemView.findViewById(R.id.txtCategoryName);
+                imgIcon = itemView.findViewById(R.id.txtCategoryIcon);
+            }
         }
     }
 
@@ -273,6 +476,12 @@ public class CreateTaskActivity extends BaseActivity {
             return;
         }
 
+        Calendar now = Calendar.getInstance();
+        if (calendar.before(now)) {
+            Toast.makeText(this, "Task date and time cannot be in the past", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         SharedPrefManager prefManager = SharedPrefManager.getInstance(this);
         String userId = prefManager.getString("user_id");
         if (userId.isEmpty()) {
@@ -293,7 +502,7 @@ public class CreateTaskActivity extends BaseActivity {
             username = SupabaseAuth.getUsername(this);
         }
         if (username.isEmpty()) {
-            username = getSharedPreferences("UserProfile", android.content.Context.MODE_PRIVATE).getString("user_name", "");
+            username = getSharedPreferences("UserProfile", Context.MODE_PRIVATE).getString("user_name", "");
         }
 
         binding.btnCreateTask.setEnabled(false);

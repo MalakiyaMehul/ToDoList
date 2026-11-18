@@ -1,6 +1,7 @@
 package com.example.todolist.Dialog;
 
 import android.os.Bundle;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,7 +10,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.DialogFragment;
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import com.example.todolist.SharedPrefManager.SharedPrefManager;
 import com.example.todolist.activity.Supabase.SupabaseAuth;
@@ -28,7 +29,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class ChangeUserPassword extends DialogFragment {
+public class ChangeUserPassword extends BottomSheetDialogFragment {
 
     private ChangePasswordDialogBoxBinding binding;
 
@@ -56,8 +57,43 @@ public class ChangeUserPassword extends DialogFragment {
         super.onViewCreated(view, savedInstanceState);
 
         binding.btnCancel.setOnClickListener(v -> dismiss());
-
         binding.btnEditTask.setOnClickListener(v -> changePassword());
+
+        // Eye toggle — current password
+        final boolean[] oldVisible = {false};
+        binding.icEyeOld.setOnClickListener(v -> {
+            oldVisible[0] = !oldVisible[0];
+            if (oldVisible[0]) {
+                binding.edtOldPassword.setInputType(
+                        InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                binding.icEyeOld.setImageResource(com.example.todolist.R.drawable.ic_eye);
+            } else {
+                binding.edtOldPassword.setInputType(
+                        InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                binding.icEyeOld.setImageResource(com.example.todolist.R.drawable.ic_eye_off);
+            }
+            binding.edtOldPassword.setSelection(
+                    binding.edtOldPassword.getText() != null
+                            ? binding.edtOldPassword.getText().length() : 0);
+        });
+
+        // Eye toggle — new password
+        final boolean[] newVisible = {false};
+        binding.icEyeNew.setOnClickListener(v -> {
+            newVisible[0] = !newVisible[0];
+            if (newVisible[0]) {
+                binding.edtNewPassword.setInputType(
+                        InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                binding.icEyeNew.setImageResource(com.example.todolist.R.drawable.ic_eye);
+            } else {
+                binding.edtNewPassword.setInputType(
+                        InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                binding.icEyeNew.setImageResource(com.example.todolist.R.drawable.ic_eye_off);
+            }
+            binding.edtNewPassword.setSelection(
+                    binding.edtNewPassword.getText() != null
+                            ? binding.edtNewPassword.getText().length() : 0);
+        });
     }
 
     private void changePassword() {

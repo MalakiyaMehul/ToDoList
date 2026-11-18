@@ -13,12 +13,14 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -43,8 +45,293 @@ public class SupabaseRepository {
         void onError(String error);
     }
 
-    private static final String[] PROFILE_TABLES = {"profile", "profiles"};
+    public interface AvailabilityCallback {
+        void onResult(boolean exists);
+        void onError(String error);
+    }
+
+    private static final String[] PROFILE_TABLES = {"profiles", "profile", "users", "Users", "tasks"};
     private static final String[] PASSWORD_KEYS = {"demo_password", "demopassword", "password"};
+
+    public static String escapeIlikeLiteral(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value
+                .replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_");
+    }
+
+    public void checkUsernameExists(String username, AvailabilityCallback callback) {
+        checkDirectProfileField("username", username, callback);
+    }
+
+    public void checkEmailExists(String email, AvailabilityCallback callback) {
+        checkDirectProfileField("email", email, callback);
+    }
+
+    // ─── Day Streak ───────────────────────────────────────────────────────────
+
+    public interface DayStreakCallback {
+        void onSuccess(int streak);
+        void onError(String error);
+    }
+
+    /**
+     * Persist the calculated day streak value into the profile table
+     * under the column "day_streak".  Tries both "profiles" and "profile".
+     */
+    public void updateDayStreak(String userId, String accessToken, int streak,
+                                UserCallback callback) {
+        if (userId == null || userId.isEmpty()) {
+            if (callback != null) new Handler(Looper.getMainLooper()).post(callback::onSuccess);
+            return;
+        }
+        String authHeader = (accessToken != null && !accessToken.trim().isEmpty())
+                ? (accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken)
+                : "Bearer " + SUPABASE_KEY;
+
+        attemptPatchDayStreak(userId, authHeader, streak, 0, callback);
+    }
+
+    private void attemptPatchDayStreak(String userId, String authHeader, int streak,
+                                       int tableIdx, UserCallback callback) {
+        String[] tables = {"profiles", "profile"};
+        if (tableIdx >= tables.length) {
+            if (callback != null) new Handler(Looper.getMainLooper()).post(callback::onSuccess);
+            return;
+        }
+        try {
+            JSONObject body = new JSONObject();
+            body.put("day_streak", streak);
+
+            Request request = new Request.Builder()
+                    .url(SUPABASE_URL + "/rest/v1/" + tables[tableIdx] + "?id=eq." + userId)
+                    .addHeader("apikey", SUPABASE_KEY)
+                    .addHeader("Authorization", authHeader)
+                    .addHeader("Content-Type", "application/json")
+                    .addHeader("Prefer", "return=minimal")
+                    .patch(RequestBody.create(body.toString(), JSON))
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    if (tableIdx + 1 < tables.length) {
+                        attemptPatchDayStreak(userId, authHeader, streak, tableIdx + 1, callback);
+                    } else {
+                        if (callback != null)
+                            new Handler(Looper.getMainLooper()).post(callback::onSuccess);
+                    }
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    boolean success = response.isSuccessful();
+                    String body2 = response.body() != null ? response.body().string() : "";
+                    response.close();
+                    if (!success && (body2.contains("PGRST205") || response.code() == 404)
+                            && tableIdx + 1 < tables.length) {
+                        attemptPatchDayStreak(userId, authHeader, streak, tableIdx + 1, callback);
+                        return;
+                    }
+                    if (callback != null)
+                        new Handler(Looper.getMainLooper()).post(callback::onSuccess);
+                }
+            });
+        } catch (Exception e) {
+            if (callback != null)
+                new Handler(Looper.getMainLooper()).post(callback::onSuccess);
+        }
+    }
+
+    /**
+     * Fetch the stored day_streak value from the profile table.
+     * Returns -1 via onError if the column is not found or an error occurred.
+     */
+    public void getDayStreak(String userId, String accessToken, DayStreakCallback callback) {
+        if (userId == null || userId.isEmpty()) {
+            new Handler(Looper.getMainLooper()).post(() -> callback.onError("No user id"));
+            return;
+        }
+        String authHeader = (accessToken != null && !accessToken.trim().isEmpty())
+                ? (accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken)
+                : "Bearer " + SUPABASE_KEY;
+
+        attemptFetchDayStreak(userId, authHeader, 0, callback);
+    }
+
+    private void attemptFetchDayStreak(String userId, String authHeader,
+                                       int tableIdx, DayStreakCallback callback) {
+        String[] tables = {"profiles", "profile"};
+        if (tableIdx >= tables.length) {
+            new Handler(Looper.getMainLooper()).post(() -> callback.onError("Not found"));
+            return;
+        }
+        Request request = new Request.Builder()
+                .url(SUPABASE_URL + "/rest/v1/" + tables[tableIdx]
+                        + "?id=eq." + userId + "&select=day_streak")
+                .addHeader("apikey", SUPABASE_KEY)
+                .addHeader("Authorization", authHeader)
+                .addHeader("Accept", "application/json")
+                .get()
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                if (tableIdx + 1 < tables.length) {
+                    attemptFetchDayStreak(userId, authHeader, tableIdx + 1, callback);
+                } else {
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
+                }
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                boolean success = response.isSuccessful();
+                String responseBody = response.body() != null ? response.body().string() : "[]";
+                response.close();
+
+                if (!success) {
+                    if (tableIdx + 1 < tables.length) {
+                        attemptFetchDayStreak(userId, authHeader, tableIdx + 1, callback);
+                    } else {
+                        new Handler(Looper.getMainLooper()).post(() -> callback.onError("HTTP " + response.code()));
+                    }
+                    return;
+                }
+
+                try {
+                    JSONArray arr = new JSONArray(responseBody);
+                    if (arr.length() > 0) {
+                        JSONObject obj = arr.getJSONObject(0);
+                        if (!obj.isNull("day_streak")) {
+                            int stored = obj.getInt("day_streak");
+                            new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(stored));
+                            return;
+                        }
+                    }
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("No value"));
+                } catch (Exception e) {
+                    if (tableIdx + 1 < tables.length) {
+                        attemptFetchDayStreak(userId, authHeader, tableIdx + 1, callback);
+                    } else {
+                        new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
+                    }
+                }
+            }
+        });
+    }
+
+    private void checkDirectProfileField(String column, String rawValue, AvailabilityCallback callback) {
+        String value = rawValue != null ? rawValue.trim() : "";
+        if (value.isEmpty()) {
+            new Handler(Looper.getMainLooper()).post(() -> callback.onResult(false));
+            return;
+        }
+
+        try {
+            String encodedVal = URLEncoder.encode(value, "UTF-8");
+            String filterUrl = SUPABASE_URL + "/rest/v1/profiles?" + column + "=eq." + encodedVal + "&select=" + column;
+
+            Request request = new Request.Builder()
+                    .url(filterUrl)
+                    .addHeader("apikey", SUPABASE_KEY)
+                    .addHeader("Accept", "application/json")
+                    .get()
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    tryFullProfilesFetch(column, value, callback);
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    boolean success = response.isSuccessful();
+                    String body = response.body() != null ? response.body().string() : "[]";
+                    response.close();
+
+                    if (success) {
+                        try {
+                            JSONArray array = new JSONArray(body);
+                            boolean found = false;
+                            for (int i = 0; i < array.length(); i++) {
+                                JSONObject obj = array.getJSONObject(i);
+                                String dbVal = obj.optString(column, "").trim();
+                                if (dbVal.equalsIgnoreCase(value.trim())) {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            boolean finalFound = found;
+                            new Handler(Looper.getMainLooper()).post(() -> callback.onResult(finalFound));
+                            return;
+                        } catch (Exception ignored) {}
+                    }
+
+                    tryFullProfilesFetch(column, value, callback);
+                }
+            });
+        } catch (Exception e) {
+            tryFullProfilesFetch(column, value, callback);
+        }
+    }
+
+    private void tryFullProfilesFetch(String column, String value, AvailabilityCallback callback) {
+        String url = SUPABASE_URL + "/rest/v1/profiles?select=username,email&limit=1000";
+
+        Request request = new Request.Builder()
+                .url(url)
+                .addHeader("apikey", SUPABASE_KEY)
+                .addHeader("Accept", "application/json")
+                .get()
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onResult(false));
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                boolean success = response.isSuccessful();
+                String body = response.body() != null ? response.body().string() : "[]";
+                response.close();
+
+                if (success) {
+                    boolean found = containsMatch(body, column, value);
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onResult(found));
+                } else {
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onResult(false));
+                }
+            }
+        });
+    }
+
+    private boolean containsMatch(String jsonArrayBody, String column, String targetValue) {
+        if (targetValue == null || targetValue.trim().isEmpty()) {
+            return false;
+        }
+        String target = targetValue.trim();
+        try {
+            JSONArray array = new JSONArray(jsonArrayBody);
+            for (int i = 0; i < array.length(); i++) {
+                JSONObject obj = array.getJSONObject(i);
+                if (obj.has(column) && !obj.isNull(column)) {
+                    String dbValue = obj.optString(column, "").trim();
+                    if (dbValue.equalsIgnoreCase(target)) {
+                        return true;
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        return false;
+    }
 
     public void saveUser(String userId, String username, String email, String password, UserCallback callback) {
         saveUser(userId, username, email, password, null, callback);
@@ -242,6 +529,15 @@ public class SupabaseRepository {
                         model.setPriority(object.optString("priority", ""));
                         model.setCompleted(object.optBoolean("completed", false));
 
+                        String subtask = object.optString("SubTask", "");
+                        if (subtask.isEmpty()) {
+                            subtask = object.optString("subtask", "");
+                        }
+                        if (subtask.isEmpty()) {
+                            subtask = object.optString("sub_task", "");
+                        }
+                        model.setSubTask(subtask);
+
                         taskList.add(model);
                     }
 
@@ -336,6 +632,68 @@ public class SupabaseRepository {
             });
         } catch (Exception e) {
             callback.onError(e.getMessage());
+        }
+    }
+
+    public void updateTaskSubTask(String taskId, String accessToken, String subTaskValue, TaskCallback callback) {
+        if (taskId == null || taskId.isEmpty()) {
+            if (callback != null) new Handler(Looper.getMainLooper()).post(() -> callback.onError("Empty task id"));
+            return;
+        }
+
+        String authHeader = (accessToken != null && !accessToken.trim().isEmpty())
+                ? (accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken)
+                : "Bearer " + SUPABASE_KEY;
+
+        attemptPatchSubTask(taskId, authHeader, subTaskValue, 0, callback);
+    }
+
+    private void attemptPatchSubTask(String taskId, String authHeader, String subTaskValue, int colIdx, TaskCallback callback) {
+        String[] columns = {"SubTask", "subtask", "sub_task"};
+        if (colIdx >= columns.length) {
+            if (callback != null) new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(taskId));
+            return;
+        }
+
+        try {
+            JSONObject body = new JSONObject();
+            body.put(columns[colIdx], subTaskValue != null ? subTaskValue : "");
+
+            Request request = new Request.Builder()
+                    .url(SUPABASE_URL + "/rest/v1/tasks?task_id=eq." + taskId)
+                    .addHeader("apikey", SUPABASE_KEY)
+                    .addHeader("Authorization", authHeader)
+                    .addHeader("Content-Type", "application/json")
+                    .addHeader("Prefer", "return=minimal")
+                    .patch(RequestBody.create(body.toString(), JSON))
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    if (colIdx + 1 < columns.length) {
+                        attemptPatchSubTask(taskId, authHeader, subTaskValue, colIdx + 1, callback);
+                    } else {
+                        if (callback != null) new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(taskId));
+                    }
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    boolean success = response.isSuccessful();
+                    String responseBody = response.body() != null ? response.body().string() : "";
+                    response.close();
+
+                    if (!success && (responseBody.contains("PGRST204") || responseBody.contains("column")) && colIdx + 1 < columns.length) {
+                        attemptPatchSubTask(taskId, authHeader, subTaskValue, colIdx + 1, callback);
+                        return;
+                    }
+
+                    if (callback != null) new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(taskId));
+                }
+            });
+        } catch (Exception e) {
+            if (callback != null) new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(taskId));
         }
     }
 

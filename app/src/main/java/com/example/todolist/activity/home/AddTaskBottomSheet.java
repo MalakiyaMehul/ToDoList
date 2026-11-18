@@ -3,11 +3,14 @@ package com.example.todolist.activity.home;
 import android.app.Dialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -66,6 +69,21 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
                 binding.edtTaskName.setError("Task name is required");
                 return;
             }
+            if (selectedYear > 0 && !selectedDate.isEmpty() && !selectedTime.isEmpty()) {
+                Calendar now = Calendar.getInstance();
+                Calendar selectedCal = Calendar.getInstance();
+                selectedCal.set(Calendar.YEAR, selectedYear);
+                selectedCal.set(Calendar.MONTH, selectedMonth);
+                selectedCal.set(Calendar.DAY_OF_MONTH, selectedDay);
+                selectedCal.set(Calendar.HOUR_OF_DAY, selectedHour);
+                selectedCal.set(Calendar.MINUTE, selectedMinute);
+                selectedCal.set(Calendar.SECOND, 0);
+
+                if (selectedCal.before(now)) {
+                    Toast.makeText(requireContext(), "Task schedule date and time cannot be in the past", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
             String date = selectedDate;
             String time = selectedTime;
             String category = selectedCategory;
@@ -87,7 +105,50 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
                     Toast.makeText(requireContext(), "Category: " + selectedCategory, Toast.LENGTH_SHORT).show();
                 }
         );
+
+        setupFieldNavigation();
+
         return dialog;
+    }
+
+    private void setupFieldNavigation() {
+        binding.edtTaskName.setImeOptions(EditorInfo.IME_ACTION_NEXT);
+        binding.edtTaskName.setSingleLine(true);
+        binding.edtTaskName.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_NEXT ||
+                actionId == EditorInfo.IME_ACTION_DONE ||
+                (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP)) {
+                binding.edtDescription.requestFocus();
+                return true;
+            }
+            return false;
+        });
+
+        binding.edtTaskName.setOnKeyListener((v, keyCode, event) -> {
+            if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
+                binding.edtDescription.requestFocus();
+                return true;
+            }
+            return false;
+        });
+
+        binding.edtDescription.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        binding.edtDescription.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE ||
+                (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP)) {
+                binding.btnSave.performClick();
+                return true;
+            }
+            return false;
+        });
+
+        binding.edtDescription.setOnKeyListener((v, keyCode, event) -> {
+            if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
+                binding.btnSave.performClick();
+                return true;
+            }
+            return false;
+        });
     }
 
     private void saveTaskToSupabase(String taskName, String description, String date, String time, String category, String priority) {
@@ -114,7 +175,7 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
             username = SupabaseAuth.getUsername(requireContext());
         }
         if (username.isEmpty()) {
-            username = requireContext().getSharedPreferences("UserProfile", android.content.Context.MODE_PRIVATE).getString("user_name", "");
+            username = requireContext().getSharedPreferences("UserProfile", Context.MODE_PRIVATE).getString("user_name", "");
         }
         final String finalUserId = userId;
         binding.btnSave.setEnabled(false);
@@ -141,21 +202,38 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
             selectedDay = day;
             openTimePicker();
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+        datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
         datePickerDialog.show();
     }
 
     private void openTimePicker() {
-        Calendar calendar = Calendar.getInstance();
+        Calendar now = Calendar.getInstance();
+        Calendar selectedCal = Calendar.getInstance();
+        if (selectedYear > 0) {
+            selectedCal.set(Calendar.YEAR, selectedYear);
+            selectedCal.set(Calendar.MONTH, selectedMonth);
+            selectedCal.set(Calendar.DAY_OF_MONTH, selectedDay);
+        }
+
         TimePickerDialog timePickerDialog = new TimePickerDialog(requireContext(), (timePicker, hour, minute) -> {
+            selectedCal.set(Calendar.HOUR_OF_DAY, hour);
+            selectedCal.set(Calendar.MINUTE, minute);
+            selectedCal.set(Calendar.SECOND, 0);
+
+            if (selectedCal.before(now)) {
+                Toast.makeText(requireContext(), "Cannot select a past time", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             selectedHour = hour;
             selectedMinute = minute;
             String date = String.format(Locale.getDefault(), "%02d/%02d/%04d", selectedDay, selectedMonth + 1, selectedYear);
             String time = String.format(Locale.getDefault(), "%02d:%02d", selectedHour, selectedMinute);
-            Toast.makeText(requireContext(), "Date: " + date + "\nTime: " + time, Toast.LENGTH_LONG).show();
+            Toast.makeText(requireContext(), "Date: " + date + "\nTime: " + time, Toast.LENGTH_SHORT).show();
             selectedDate = date;
             selectedTime = time;
         },
-                calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), false);
+                now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE), false);
         timePickerDialog.show();
     }
 
