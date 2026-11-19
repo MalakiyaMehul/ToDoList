@@ -121,9 +121,6 @@ public class FocusFragment extends Fragment {
                 Toast.makeText(requireContext(), "Category options", Toast.LENGTH_SHORT).show()
         );
 
-        binding.btnStreakDetails.setOnClickListener(v ->
-                Toast.makeText(requireContext(), "Consistency details", Toast.LENGTH_SHORT).show()
-        );
     }
 
     private void loadSavedAvatar() {
@@ -317,17 +314,7 @@ public class FocusFragment extends Fragment {
                 category = category.trim();
             }
 
-            int color;
-            String colorHex = task.getCategoryColor();
-            if (colorHex != null && !colorHex.trim().isEmpty()) {
-                try {
-                    color = Color.parseColor(colorHex.trim());
-                } catch (Exception e) {
-                    color = DonutChartView.getCategoryColor(category);
-                }
-            } else {
-                color = DonutChartView.getCategoryColor(category);
-            }
+            int color = DonutChartView.getCategoryColor(category);
 
             if (categoryMap.containsKey(category)) {
                 categoryMap.get(category).count++;
@@ -383,9 +370,7 @@ public class FocusFragment extends Fragment {
         binding.tvStreakDaysBadge.setText(streak + "\nDays");
         binding.tvStreakSubtitle.setText("You're on a " + streak + "-day streak! Keep going!");
         final int finalStreak = streak;
-        binding.btnStreakDetails.setOnClickListener(v ->
-                Toast.makeText(requireContext(), "Consistency details: " + finalStreak + " day active streak!", Toast.LENGTH_SHORT).show()
-        );
+        
     }
 
     private void updateWeeklyOutputTrend() {

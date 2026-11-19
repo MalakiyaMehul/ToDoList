@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class DonutChartView extends View {
 
@@ -32,23 +33,40 @@ public class DonutChartView extends View {
         }
     }
 
+    private static final int[] PALETTE = new int[]{
+            Color.parseColor("#10B981"),
+            Color.parseColor("#3B82F6"),
+            Color.parseColor("#F59E0B"),
+            Color.parseColor("#EC4899"),
+            Color.parseColor("#8B5CF6"),
+            Color.parseColor("#06B6D4"),
+            Color.parseColor("#F43F5E"),
+            Color.parseColor("#14B8A6"),
+            Color.parseColor("#A855F7"),
+            Color.parseColor("#EAB308"),
+            Color.parseColor("#6366F1")
+    };
+
     public static int getCategoryColor(String categoryName) {
-        if (categoryName == null) return Color.parseColor("#8B5CF6");
-        switch (categoryName.trim()) {
-            case "Work": return Color.parseColor("#8B5CF6");
-            case "Design": return Color.parseColor("#C084FC");
-            case "Personal": return Color.parseColor("#06B6D4");
-            case "Health": return Color.parseColor("#10B981");
-            case "Grocery": return Color.parseColor("#CCFF80");
-            case "Sport": return Color.parseColor("#80FFFF");
-            case "University": return Color.parseColor("#809CFF");
-            case "Social": return Color.parseColor("#FF80EB");
-            case "Music": return Color.parseColor("#FC80FF");
-            case "Heart": return Color.parseColor("#80FFA3");
-            case "Movie": return Color.parseColor("#80D1FF");
-            case "Home": return Color.parseColor("#FFCC80");
+        if (categoryName == null || categoryName.trim().isEmpty()) {
+            return PALETTE[0];
+        }
+        String cat = categoryName.trim().toLowerCase(Locale.ROOT);
+        switch (cat) {
+            case "work": return Color.parseColor("#10B981");
+            case "personal": return Color.parseColor("#06B6D4");
+            case "design": return Color.parseColor("#A855F7");
+            case "health": return Color.parseColor("#F43F5E");
+            case "education": return Color.parseColor("#F59E0B");
+            case "finance": return Color.parseColor("#3B82F6");
+            case "shopping": return Color.parseColor("#EC4899");
+            case "fitness": return Color.parseColor("#EF4444");
+            case "home": return Color.parseColor("#14B8A6");
+            case "music": return Color.parseColor("#8B5CF6");
+            case "camera": return Color.parseColor("#EAB308");
             default:
-                return Color.parseColor("#8B5CF6");
+                int hash = Math.abs(cat.hashCode());
+                return PALETTE[hash % PALETTE.length];
         }
     }
 
