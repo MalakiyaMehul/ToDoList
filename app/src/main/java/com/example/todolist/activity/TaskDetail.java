@@ -22,6 +22,7 @@ import com.example.todolist.activity.Supabase.SupabaseAuth;
 import com.example.todolist.activity.Supabase.SupabaseRepository;
 import com.example.todolist.databinding.ActivityTaskDetailBinding;
 import com.example.todolist.model.TaskModel;
+import com.example.todolist.service.TaskReminderService;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -404,6 +405,9 @@ public class TaskDetail extends BaseActivity {
                 token = SupabaseAuth.getAccessToken(this);
             }
             new SupabaseRepository().updateTaskCompleted(taskId, token, completed, null);
+            if (completed) {
+                TaskReminderService.stopIfMatchingTask(this, taskId);
+            }
         }
         Toast.makeText(this, completed ? "Task completed! 🎉" : "Task marked active", Toast.LENGTH_SHORT).show();
     }

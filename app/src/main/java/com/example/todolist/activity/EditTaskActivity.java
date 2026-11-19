@@ -33,6 +33,7 @@ import com.example.todolist.databinding.ActivityCategoryBottomSheetBinding;
 import com.example.todolist.databinding.ActivityEditTaskBinding;
 import com.example.todolist.model.CategoryModel;
 import com.example.todolist.model.TaskModel;
+import com.example.todolist.receiver.TaskReminderScheduler;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import org.json.JSONArray;
@@ -681,6 +682,25 @@ public class EditTaskActivity extends BaseActivity {
                 new SupabaseRepository.TaskCallback() {
                     @Override
                     public void onSuccess(String taskId) {
+                        TaskModel updatedModel = new TaskModel(
+                                taskId,
+                                taskName,
+                                description,
+                                selectedDate,
+                                selectedTime,
+                                selectedCategory,
+                                categoryColor,
+                                categoryIcon,
+                                selectedPriority,
+                                completed
+                        );
+                        TaskReminderScheduler.scheduleTaskReminder(
+                                EditTaskActivity.this,
+                                updatedModel,
+                                selectedAlertOffsetMinutes,
+                                binding.switchReminder.isChecked()
+                        );
+
                         if (finishAfterSave) {
                             Toast.makeText(EditTaskActivity.this, "Task updated successfully", Toast.LENGTH_SHORT).show();
                             finish();
@@ -715,6 +735,7 @@ public class EditTaskActivity extends BaseActivity {
                     new SupabaseRepository().deleteTask(taskId, accessToken, new SupabaseRepository.TaskCallback() {
                         @Override
                         public void onSuccess(String taskId) {
+                            TaskReminderScheduler.cancelTaskReminder(EditTaskActivity.this, taskId);
                             Toast.makeText(EditTaskActivity.this, "Task deleted", Toast.LENGTH_SHORT).show();
                             finish();
                         }

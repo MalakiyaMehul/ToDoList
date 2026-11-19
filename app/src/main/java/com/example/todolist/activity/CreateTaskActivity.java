@@ -1,10 +1,13 @@
 package com.example.todolist.activity;
 
+import android.Manifest;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Typeface;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
@@ -15,6 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.view.LayoutInflater;
@@ -30,6 +34,8 @@ import com.example.todolist.activity.Supabase.SupabaseRepository;
 import com.example.todolist.databinding.ActivityCategoryBottomSheetBinding;
 import com.example.todolist.databinding.ActivityCreateTaskBinding;
 import com.example.todolist.model.CategoryModel;
+import com.example.todolist.model.TaskModel;
+import com.example.todolist.receiver.TaskReminderScheduler;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.text.SimpleDateFormat;
@@ -68,6 +74,21 @@ public class CreateTaskActivity extends BaseActivity {
         setupListeners();
         setupCategorySelection();
         setupPrioritySelection();
+
+        checkNotificationPermission();
+    }
+
+    private void checkNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                        this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                        101
+                );
+            }
+        }
     }
 
     private void initDefaultDateTime() {
@@ -525,6 +546,24 @@ public class CreateTaskActivity extends BaseActivity {
                 new SupabaseRepository.TaskCallback() {
                     @Override
                     public void onSuccess(String taskId) {
+                        TaskModel model = new TaskModel(
+                                taskId,
+                                title,
+                                details,
+                                selectedDate,
+                                selectedTime,
+                                selectedCategory,
+                                selectedCategoryColor,
+                                selectedCategoryIcon,
+                                selectedPriority,
+                                false
+                        );
+                        TaskReminderScheduler.scheduleTaskReminder(
+                                CreateTaskActivity.this,
+                                model,
+                                selectedAlertOffsetMinutes,
+                                binding.switchReminder.isChecked()
+                        );
                         Toast.makeText(CreateTaskActivity.this, "Task created successfully", Toast.LENGTH_SHORT).show();
                         setResult(RESULT_OK);
                         finish();

@@ -2,6 +2,7 @@ package com.example.todolist.adapter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,13 +23,16 @@ import com.example.todolist.activity.TaskDetail;
 import com.example.todolist.databinding.BottomSheetTaskActionsBinding;
 import com.example.todolist.databinding.TaskCardBinding;
 import com.example.todolist.model.TaskModel;
+import com.example.todolist.service.TaskReminderService;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
 
     private final ArrayList<TaskModel> taskModels;
+    private String searchQuery = "";
 
     public interface OnTaskClickListener {
         void onTaskClick(TaskModel taskModel);
@@ -43,6 +47,11 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     public TaskAdapter(ArrayList<TaskModel> taskModels, OnTaskClickListener listener) {
         this.taskModels = taskModels;
         this.listener = listener;
+    }
+
+    public void setSearchQuery(String query) {
+        this.searchQuery = query != null ? query.trim() : "";
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -71,26 +80,41 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         if (categoryColor != null && !categoryColor.trim().isEmpty()) {
             try {
                 int color = Color.parseColor(categoryColor);
-                binding.categoryInclude.bgcolor.setBackgroundTintList(android.content.res.ColorStateList.valueOf(color));
+                binding.categoryInclude.bgcolor.setBackgroundTintList(ColorStateList.valueOf(color));
             } catch (IllegalArgumentException e) {
-                binding.categoryInclude.bgcolor.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.GRAY));
+                binding.categoryInclude.bgcolor.setBackgroundTintList(ColorStateList.valueOf(Color.GRAY));
             }
         }
 
         String categoryIcon = taskModel.getCategoryIcon();
-        if (categoryIcon != null && !categoryIcon.trim().isEmpty()) {
-            try {
-                binding.categoryInclude.imgCategory.setImageResource(Integer.parseInt(categoryIcon));
-            } catch (NumberFormatException e) {
-                binding.categoryInclude.imgCategory.setImageResource(R.drawable.university);
-            }
-        }
+        String categoryName = taskModel.getCategory();
+        Context context = holder.itemView.getContext();
+        int iconRes = getCategoryIconDrawable(context, categoryIcon, categoryName);
+        binding.categoryInclude.imgCategory.setImageResource(iconRes);
+        binding.categoryInclude.imgCategory.setImageTintList(ColorStateList.valueOf(Color.WHITE));
+
         String priority = taskModel.getPriority();
         if (priority != null && !priority.isEmpty()) {
             binding.priorityInclude.priority.setText(priority);
         } else {
             binding.priorityInclude.priority.setText("Normal");
         }
+
+        // Highlight card if matching search query
+        if (searchQuery != null && !searchQuery.isEmpty()) {
+            String q = searchQuery.toLowerCase();
+            String name = taskModel.getTaskName() != null ? taskModel.getTaskName().toLowerCase() : "";
+            String desc = taskModel.getDescription() != null ? taskModel.getDescription().toLowerCase() : "";
+            String cat = taskModel.getCategory() != null ? taskModel.getCategory().toLowerCase() : "";
+            if (name.contains(q) || desc.contains(q) || cat.contains(q)) {
+                holder.itemView.setBackgroundResource(R.drawable.bg_task_card_highlighted);
+            } else {
+                holder.itemView.setBackgroundResource(R.drawable.bg_task_card);
+            }
+        } else {
+            holder.itemView.setBackgroundResource(R.drawable.bg_task_card);
+        }
+
         ViewGroup.LayoutParams layoutParams = holder.itemView.getLayoutParams();
         if (layoutParams instanceof ViewGroup.MarginLayoutParams) {
             ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) layoutParams;
@@ -112,6 +136,9 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                     token = SupabaseAuth.getAccessToken(v.getContext());
                 }
                 new SupabaseRepository().updateTaskCompleted(taskModel.getTaskId(), token, newStatus, null);
+                if (newStatus) {
+                    TaskReminderService.stopIfMatchingTask(v.getContext(), taskModel.getTaskId());
+                }
             }
         });
 
@@ -243,6 +270,45 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     @Override
     public int getItemCount() {
         return taskModels.size();
+    }
+
+    public static int getCategoryIconDrawable(Context context, String categoryIcon, String categoryName) {
+        if (categoryIcon != null && !categoryIcon.trim().isEmpty()) {
+            String cleanIcon = categoryIcon.trim();
+            try {
+                int resId = Integer.parseInt(cleanIcon);
+                if (context != null) {
+                    context.getResources().getResourceName(resId);
+                }
+                return resId;
+            } catch (Exception ignored) {}
+
+            if (context != null) {
+                try {
+                    int nameResId = context.getResources().getIdentifier(cleanIcon, "drawable", context.getPackageName());
+                    if (nameResId != 0) {
+                        return nameResId;
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
+
+        if (categoryName != null) {
+            String cat = categoryName.trim().toLowerCase(Locale.ROOT);
+            if (cat.contains("work")) return R.drawable.ic_briefcase_custom;
+            if (cat.contains("personal")) return R.drawable.ic_user_custom;
+            if (cat.contains("design")) return R.drawable.ic_design_custom;
+            if (cat.contains("health")) return R.drawable.ic_health_custom;
+            if (cat.contains("edu") || cat.contains("study") || cat.contains("school")) return R.drawable.university;
+            if (cat.contains("finance") || cat.contains("money") || cat.contains("pay")) return R.drawable.tag;
+            if (cat.contains("shop") || cat.contains("grocery")) return R.drawable.checklist_rafiki;
+            if (cat.contains("fit") || cat.contains("sport") || cat.contains("gym")) return R.drawable.sport;
+            if (cat.contains("home") || cat.contains("house")) return R.drawable.home;
+            if (cat.contains("music") || cat.contains("song")) return R.drawable.music;
+            if (cat.contains("camera") || cat.contains("photo")) return R.drawable.camera;
+        }
+
+        return R.drawable.ic_briefcase_custom;
     }
 
     public static class TaskViewHolder extends RecyclerView.ViewHolder {

@@ -1,15 +1,21 @@
 package com.example.todolist.Fragment;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Toast;
 
 import com.example.todolist.R;
@@ -22,9 +28,11 @@ import com.example.todolist.adapter.TaskAdapter;
 import com.example.todolist.databinding.FragmentIndexBinding;
 import com.example.todolist.model.TaskModel;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -44,6 +52,8 @@ public class IndexFragment extends Fragment {
     private TaskAdapter completedAdapter;
 
     private String currentTab = "Today";
+    private final List<TaskModel> masterTaskList = new ArrayList<>();
+    private String currentSearchQuery = "";
 
     public IndexFragment() {
     }
@@ -80,18 +90,71 @@ public class IndexFragment extends Fragment {
 
     private void setupQuickActions() {
         binding.btnQuickAddAction.setOnClickListener(v -> {
-            String quickTitle = binding.edtQuickSearch.getText().toString().trim();
-            Intent intent = new Intent(requireContext(), com.example.todolist.activity.CreateTaskActivity.class);
-            if (!quickTitle.isEmpty()) {
-                intent.putExtra("quick_title", quickTitle);
-            }
-            startActivity(intent);
+            String query = binding.edtQuickSearch.getText().toString().trim();
+            performTaskSearch(query);
         });
 
+        binding.edtQuickSearch.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_SEARCH ||
+                (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP)) {
+                String query = binding.edtQuickSearch.getText().toString().trim();
+                performTaskSearch(query);
+                return true;
+            }
+            return false;
+        });
+
+        binding.edtQuickSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String query = s != null ? s.toString().trim() : "";
+                performTaskSearch(query);
+            }
+        });
 
         binding.btnDeepFocusPlay.setOnClickListener(v ->
                 Toast.makeText(requireContext(), "Starting Deep Focus session...", Toast.LENGTH_SHORT).show()
         );
+    }
+
+    private void performTaskSearch(String query) {
+        currentSearchQuery = query != null ? query.trim() : "";
+
+        todayAdapter.setSearchQuery(currentSearchQuery);
+        upcomingAdapter.setSearchQuery(currentSearchQuery);
+        allAdapter.setSearchQuery(currentSearchQuery);
+        completedAdapter.setSearchQuery(currentSearchQuery);
+
+        if (masterTaskList == null || masterTaskList.isEmpty()) {
+            populateTasks(new ArrayList<>());
+            return;
+        }
+
+        if (currentSearchQuery.isEmpty()) {
+            populateTasks(masterTaskList);
+            return;
+        }
+
+        List<TaskModel> filteredList = new ArrayList<>();
+        String q = currentSearchQuery.toLowerCase(Locale.getDefault());
+        for (TaskModel task : masterTaskList) {
+            if (task != null) {
+                String name = task.getTaskName() != null ? task.getTaskName().toLowerCase(Locale.getDefault()) : "";
+                String desc = task.getDescription() != null ? task.getDescription().toLowerCase(Locale.getDefault()) : "";
+                String cat = task.getCategory() != null ? task.getCategory().toLowerCase(Locale.getDefault()) : "";
+                if (name.contains(q) || desc.contains(q) || cat.contains(q)) {
+                    filteredList.add(task);
+                }
+            }
+        }
+
+        populateTasks(filteredList);
     }
 
     private void updateGreeting() {
@@ -108,7 +171,7 @@ public class IndexFragment extends Fragment {
 
         String displayName = "Elena";
         String savedName = requireContext()
-                .getSharedPreferences("UserProfile", android.content.Context.MODE_PRIVATE)
+                .getSharedPreferences("UserProfile", Context.MODE_PRIVATE)
                 .getString("user_name", null);
         if (savedName == null || savedName.trim().isEmpty()) {
             savedName = SharedPrefManager.getInstance(requireContext()).getString("username");
@@ -184,15 +247,15 @@ public class IndexFragment extends Fragment {
             return;
         }
         String savedAvatarUri = requireContext()
-                .getSharedPreferences("UserProfile", android.content.Context.MODE_PRIVATE)
+                .getSharedPreferences("UserProfile", Context.MODE_PRIVATE)
                 .getString("avatar_uri", null);
 
         if (savedAvatarUri != null && !savedAvatarUri.isEmpty()) {
             try {
-                java.io.File file = new java.io.File(savedAvatarUri);
+                File file = new File(savedAvatarUri);
                 if (file.exists()) {
                     binding.ivIndexAvatar.setImageURI(null);
-                    binding.ivIndexAvatar.setImageURI(android.net.Uri.fromFile(file));
+                    binding.ivIndexAvatar.setImageURI(Uri.fromFile(file));
                 }
             } catch (Exception ignored) {}
         }
@@ -235,7 +298,7 @@ public class IndexFragment extends Fragment {
             try {
                 SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.getDefault());
                 sdf.setLenient(false);
-                java.util.Date date = sdf.parse(dateStr.trim());
+                Date date = sdf.parse(dateStr.trim());
                 if (date != null) {
                     Calendar cal = Calendar.getInstance();
                     cal.setTime(date);
@@ -331,7 +394,11 @@ public class IndexFragment extends Fragment {
                         if (binding != null && binding.swipeRefreshLayout.isRefreshing()) {
                             binding.swipeRefreshLayout.setRefreshing(false);
                         }
-                        populateTasks(tasks);
+                        if (tasks != null) {
+                            masterTaskList.clear();
+                            masterTaskList.addAll(tasks);
+                        }
+                        performTaskSearch(currentSearchQuery);
                     });
                 }
             }
